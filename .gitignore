@@ -1,0 +1,8 @@
+.DS_Store
+*.swp
+*.tmp
+.env
+.env.*
+.linky.env
+node_modules/
+/ROG/demo.mp4

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+
+<script>
+    function toggleInfo(id) {
+        const info = document.getElementById(id); 
+    if (info.style.display === "none") {
+        info.style.display = "block";
+    } else {
+        info.style.display = "none";
+    }
+}
+    
+</script>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title> 임동우의 숲 속 웹사이트 </title>
+
+    <style> #forest-container {
+    position: fixed;
+    right: 0px; top: 0px;
+    height: 100vh;
+    width: 70vw;
+    z-index: 0; 
+    pointer-event: none;
+}
+
+    .tree {
+    font-family:'Courier New', Courier, monospace;
+    white-space: pre; line-height: 1.1; position: absolute;}
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background-color: white;
+        transition: background-color 0.8s ease, color 0.8s ease;
+    }
+   html.dark-mode, body.dark-mode {
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+    }
+    html.dark-mode a,body.dark-mode a {
+        color: #8abdf8;
+    }
+</style>
+
+</head>
+<h1> 그의 약력 . . . </h1>
+<body>
+<ul>
+	<li>2003년 출생 (강원도 춘천)</li> <br>
+	<li> 전라북도 완주군 고산면 남봉리 6-9에서 어린 시절을 보냄</li> <br>
+	<li> 고산초등학교, 고산중학교 졸업 후 전주고등학교 진학</li> <br>
+	<li> 음악의 꿈을 품고 1학년 가을에 자퇴, 학교 밖 청소년이 됨</li> <br>
+	<li> 낭랑 십팔세, SJA를 다니기 위해 첫 상경.</li> <br>
+	<li> 스무살 2월, 고등학교 친구와 7사단으로 동반입대 감행</li> <br>
+	<li> 스물 두살, 전역 후 버클리 음대 합격</li> <br>
+	<li> 스물 네살, 졸업 후 한국에 돌아와 이요하우스 워크샵 수강 중 </li> <br>
+	<li> 졸업 한 다음날부터 매일 하나씩 데모를 만들어 오고 있음 (주말 빼고) </li> <br>
+
+	<p>
+	<em> <span style="font-size:20px;"><a href=https://soundcloud.com/dwedwardlim>그의 최근 작업물들 확인해보기 . . .</a></span> </em> 
+
+
+</ul>
+
+<div id="tree-templates" style="display:none;">
+    <div class="tree tree0">
+   
+         /\
+        //\\  
+       //  \\
+      //  . \\
+       /\  /\
+      // .  \\
+     //    _ \\
+    //  .     \\
+   //      *  \\
+    /\ _      /\
+   // .      / \\
+  //   *     _  \\
+ // _ _ _  _ _ _ \\
+        H-H
+        H-H    
+        H H
+        H-H     
+        H H  
+        H H   
+  ______H-H______
+</div>
+
+<div class="tree tree1">
+
+         /\
+        //\\  
+       //  \\
+      //._  \\
+       /\  /\
+      //.  _\\
+     /.*      \
+    //   .    \\
+   // _     .  \\
+    /\        /\
+   //   .    / \\
+  // _     *  . \\
+ // _ _ _  _ _ _ \\
+        H-H
+        H-H    ~
+        H-H
+        H H   _
+    ~   H H  {O}
+        H-H   |
+  _*____H H__\|/__
+</div>
+
+<div class="tree tree2">
+   
+         /\
+        //\\  
+       //  \\
+      //_ . \\
+       /\  /\
+      //   _\\
+     //   .   \
+    // *     .\\
+   //   _      \\
+    /\      * /\
+   //    .   / \\
+  // _        . \\
+ // _ _ _  _ _ _ \\
+        H H
+        H H
+   ~    H-H  
+        H-H  |
+        H_H  *
+        H H    
+  __~___H H______
+</div>
+
+<div class="tree tree3">
+   
+         /\
+        //\\  
+       //  \\
+      // *  \\
+       /\  /\
+      // .  \\
+     //       \
+    //  _    .\\
+   //       *  \\
+    /\        /\
+   //     _  / \\
+  //  *         \\
+ // _ _ _  _ _ _ \\
+    :   H H
+    :   H-H  ~
+    :   H H  
+  \[]/  H-H    ~
+  /[]\  H H   
+        H-H    
+  ______H-H______
+</div>
+</div>
+
+<div id="forest-container"></div>
+
+<audio id="myAudio" src="Guitarsound.mp3"></audio>
+<div id="guitar" class="tree" style="position: fixed; top: 46%; left: 86%; z-index:2; cursor: pointer; font-size: 5px">
+   <strong> 
+     _
+   o[ ]o
+   o| |o
+   o\ /o
+    |:|
+    |:| 
+    |:|  ♫
+    |:| ♩
+  _-|:|-_
+ (  |:|  )      
+  )  _  (
+ /  (_)  \
+|   ___   |
+ \ _ _ _ /
+</strong>
+
+ </div>
+<a href="https://www.instagram.com/dwedwardlim/" target="_blank" id="well" class="tree"style="position: fixed; top: 72%; left: 36%; z-index: 2; text-decoration: none; color: inherit; font-size: 6px">
+ <strong>
+  _  __  _  ___  _
+ [_][__][_][___][_]
+ [__][._][_][_][_.]
+ [_][_][__][_._][_]
+ [__][__][__][_][_]
+  </strong> </a>
+
+<div id="sun-btn" class="tree" style="position: fixed; top: 3%; right: 3%; z-index: 100; cursor: pointer; font-size: 8px; ">
+  \  _|_  /
+    / / \ 
+ - (// //) -
+    \_/_/ 
+  /   |   \
+</div>
+
+<div id="moon-btn" class="tree" style="position: fixed; top: 3%; right: 3%; z-index: 100; cursor: pointer; font-size: 8px; display: none;">
+    _ _ _ 
+   / .  _\ 
+  |   / *
+  |.  \_ _
+   \_ _ ./
+
+</div>
+
+<script>
+    const templates = document.querySelectorAll('#tree-templates .tree');
+    const container = document.getElementById('forest-container');
+    const myForestConfig = [
+        { type: 1, top: '10%', left: '0%', size: 12 },
+        { type: 0, top: '2%', left: '18%', size: 8 },
+        { type: 2, top: '30%', left: '24%', size: 8 },
+        { type: 0, top: '8%', left: '33%', size: 9 },
+        { type: 1, top: '3%', left: '48%', size: 6 },
+        { type: 3, top: '19%', left: '52%', size: 8 },
+        { type: 0, top: '7%', left: '62%', size: 7 },
+        { type: 2, top: '23%', left: '68%', size: 11 }, 
+        { type: 3, top: '5%', left: '82%', size: 8 },
+        { type: 1, top: '60%', left: '82%', size: 12 },
+        { type: 0, top: '43%', left: '90%', size: 7 },
+        { type: 2, top: '80%', left: '62%', size: 8 },
+        { type: 0, top: '58%', left: '56%', size: 9 },
+        { type: 1, top: '42%', left: '48%', size: 6 },
+        { type: 3, top: '52%', left: '38%', size: 13 },
+        { type: 0, top: '57%', left: '24%', size: 7 },
+        { type: 2, top: '73%', left: '14%', size: 11 }, 
+        { type: 3, top: '55%', left: '0%', size: 8 },
+
+    ];
+
+    myForestConfig.forEach(config => {
+        const newTree = templates[config.type].cloneNode(true);
+
+        newTree.style.top = config.top;
+        newTree.style.left = config.left;
+        newTree.style.fontSize = config.size + 'px';
+        newTree.style.marginBottom = "20px";
+
+        container.appendChild(newTree);
+    });
+
+    const musicPlayer = document.getElementById('guitar');
+    const myAudio = document.getElementById('myAudio');
+
+    musicPlayer.addEventListener('click', function() {
+        if (myAudio.paused) {
+            myAudio.play();
+        }
+        else {
+            myAudio.pause();
+        }
+    });
+
+    const sunBtn = document.getElementById('sun-btn');
+     const moonBtn = document.getElementById('moon-btn');
+    const body = document.body;
+  const html = document.documentElement;
+
+function toggleTheme() {
+    body.classList.toggle('dark-mode');
+    html.classList.toggle('dark-mode');
+
+    if (body.classList.contains('dark-mode')){
+        sunBtn.style.display = 'none';
+        moonBtn.style.display = 'block';
+    } else {
+        sunBtn.style.display = 'block';
+        moonBtn.style.display = 'none' ;
+    }
+}
+sunBtn.addEventListener('click', toggleTheme);
+moonBtn.addEventListener('click', toggleTheme);
+
+
+</script>
+
+
+</body>
+</html>

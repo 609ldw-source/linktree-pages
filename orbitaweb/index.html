@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#090b10">
+    <title>Orbita — Color Sequencer</title>
+    <link rel="stylesheet" href="./src/styles.css?v=20260813-3">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Orbita 처음으로">
+          <span class="brand-orbit" aria-hidden="true"><i></i></span>
+          <span><strong>ORBITA</strong><small>COLOR SEQUENCER</small></span>
+        </a>
+
+        <div class="global-transport" aria-label="전체 재생 컨트롤">
+          <button class="icon-button primary" id="play-all" type="button" aria-label="전체 시작">
+            <span aria-hidden="true">▶</span><span class="button-label">전체 시작</span>
+          </button>
+          <button class="icon-button" id="stop-all" type="button" aria-label="전체 정지">
+            <span aria-hidden="true">■</span><span class="button-label">전체 정지</span>
+          </button>
+        </div>
+
+        <div class="topbar-actions">
+          <label class="master-volume">
+            <span>MASTER</span>
+            <input id="master-volume" type="range" min="0" max="1" step="0.01" value="0.72" aria-label="마스터 볼륨">
+          </label>
+          <span class="save-status" id="save-status" aria-live="polite">저장됨</span>
+          <button class="text-button" id="export-project" type="button">내보내기</button>
+          <button class="text-button" id="import-project" type="button">불러오기</button>
+          <input id="project-file" type="file" accept="application/json,.json" hidden>
+        </div>
+      </header>
+
+      <div class="mobile-view-switch" role="group" aria-label="모바일 보기 모드">
+        <button type="button" data-view="focus" aria-pressed="true">포커스</button>
+        <button type="button" data-view="overview" aria-pressed="false">전체 보기</button>
+      </div>
+
+      <main class="orbita-stage focus-view" id="orbita-stage" aria-label="Orbita 연주 영역"></main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+    <div class="sr-only" id="live-region" aria-live="polite"></div>
+
+    <script defer src="./dist/app.js?v=20260815-1"></script>
+  </body>
+</html>

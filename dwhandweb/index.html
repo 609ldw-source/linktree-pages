@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+
+<script>
+    function toggleInfo(id) {
+        const info = document.getElementById(id); 
+    if (info.style.display === "none") {
+        info.style.display = "block";
+    } else {
+        info.style.display = "none";
+    }
+}
+    
+</script>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title> 임동우의 숲 속 웹사이트 </title>
+
+    <style> #forest-container {
+    position: fixed;
+    right: 0px; top: 0px;
+    height: 100vh;
+    width: 70vw;
+    z-index: 0; 
+    pointer-events: none;
+}
+
+    .tree {
+    font-family:'Courier New', Courier, monospace;
+    white-space: pre; line-height: 1.1; position: absolute;}
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background-color: white;
+        transition: background-color 0.8s ease, color 0.8s ease;
+
+        -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overflow-x: hidden;
+    }
+   html.dark-mode, body.dark-mode {
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+    }
+    html.dark-mode a,body.dark-mode a {
+        color: #8abdf8;
+    }
+
+    @media (max-width: 768px) {
+    #forest-container {
+        width: 100vw; 
+        z-index: 0;
+    }
+
+ 
+    #guitar {
+        left: 75% !important;
+        font-size: 3.5px !important; 
+    }
+
+    #well {
+        left: 15% !important; 
+        font-size: 4px !important;
+    }
+    
+    #sun-btn, #moon-btn {
+        font-size: 6px !important;
+        top: 2% !important;
+        right: 5% !important;
+    }
+}
+</style>
+
+</head>
+<body>
+<br> <h1> . . . 임동우의 숲 속에 오신 여러분을 환영합니다.</h1>
+
+이 곳은 <b>임동우</b>의 자기소개 웹사이트입니다.<br>
+<p>  숲을 걸으며 <b>임동우</b>에 대해 알아보고, 산책을 즐겨보세요. </p>
+<br> 그는 어떤 사람일까요? <br>
+</p> <p>
+<em>아래</em><span style="font-size:14px;">를 눌러 그의 정보 확인하기</span> ↓↓↓ 
+</p>
+
+<ol>
+    <li> <a href=bio.html>약력</a> </li><br> 
+    <li> <span title="쉬었음 청년">현재 상태</span> </li> (마우스를 올려 확인해보세요.)<br><br>
+    <li> 그의 반려물품들
+    <a href="#" onclick="toggleInfo('info1');return false;">1.</a>
+    <a href="#" onclick="toggleInfo('info2');return false;">2.</a>
+    <a href="#" onclick="toggleInfo('info3');return false;">3.</a> </li> <br>
+</ol>
+<div id="info1" style="display:none;">
+    <img src="alexandra.jpeg" alt="알렉산드라" width="300">
+    <p> 열여덟 살부터 함께 해온 일렉 기타, 알렉산드라 양입니다. <br> 2016년생 재즈마스터 리이슈에요. <br> 상경생활부터 유학생활까지 저의 목소리를 대신해 고운 소리를 내주고 있습니다. <br>
+    * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * </p>
+</div>
+
+<div id="info2" style="display:none;">
+    <img src="laptop.jpeg" alt="노트북" width="300">
+    <p> 형이 물려준 2019년형 13인치 맥북 프로입니다. Intel CPU 로 돌아가는 고물짝이에요. <br> 서울에 홀로 올라왔을 때부터 저의 작업 노트북이 되어 함께 유학생활을 버텨냈지만, 이제 명예은퇴를 고민하고 있습니다. <br>
+    * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * </p>
+</div>
+
+<div id="info3" style="display:none;">
+    <img src="watch.jpeg" alt="시계" width="300">
+    <p> 중학교 때 아버지께 받은 팀버랜드 시계예요. <br>군대에서 훈련받다 앞유리가 깨지고, 유학생활 중 밴드가 끊어져 지금의 프랑켄슈타인이 되었습니다. <br>사진은 수리할 곳을 알아보려 제미나이에게 물어보려고 찍었던 것이에요. <br>
+    * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * </p>
+</div>
+
+
+<p> <a href="https://blog.naver.com/dwedwardlim">이곳</a>을 누르고 그의 블로그 구경하기 < </p>
+<strong>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <br> <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <br> <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <br> <br> 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* <br> </strong>
+ <p> <em> <b>우물</b>을 들여다보고 앞으로의 그의 여정 확인해보기</em> </p>
+
+<div id="tree-templates" style="display:none;">
+    <div class="tree tree0">
+   
+         /\
+        //\\  
+       //  \\
+      //  . \\
+       /\  /\
+      // .  \\
+     //    _ \\
+    //  .     \\
+   //      *  \\
+    /\ _      /\
+   // .      / \\
+  //   *     _  \\
+ // _ _ _  _ _ _ \\
+        H-H
+        H-H    
+        H H
+        H-H     
+        H H  
+        H H   
+  ______H-H______
+</div>
+
+<div class="tree tree1">
+
+         /\
+        //\\  
+       //  \\
+      //._  \\
+       /\  /\
+      //.  _\\
+     /.*      \
+    //   .    \\
+   // _     .  \\
+    /\        /\
+   //   .    / \\
+  // _     *  . \\
+ // _ _ _  _ _ _ \\
+        H-H
+        H-H    ~
+        H-H
+        H H   _
+    ~   H H  {O}
+        H-H   |
+  _*____H H__\|/__
+</div>
+
+<div class="tree tree2">
+   
+         /\
+        //\\  
+       //  \\
+      //_ . \\
+       /\  /\
+      //   _\\
+     //   .   \
+    // *     .\\
+   //   _      \\
+    /\      * /\
+   //    .   / \\
+  // _        . \\
+ // _ _ _  _ _ _ \\
+        H H
+        H H
+   ~    H-H  
+        H-H  |
+        H_H  *
+        H H    
+  __~___H H______
+</div>
+
+<div class="tree tree3">
+   
+         /\
+        //\\  
+       //  \\
+      // *  \\
+       /\  /\
+      // .  \\
+     //       \
+    //  _    .\\
+   //       *  \\
+    /\        /\
+   //     _  / \\
+  //  *         \\
+ // _ _ _  _ _ _ \\
+    :   H H
+    :   H-H  ~
+    :   H H  
+  \[]/  H-H    ~
+  /[]\  H H   
+        H-H    
+  ______H-H______
+</div>
+</div>
+
+<div id="forest-container"></div>
+
+<audio id="myAudio" src="Guitarsound.mp3"></audio>
+<div id="guitar" class="tree" style="position: fixed; top: 46%; left: 86%; z-index:2; cursor: pointer; font-size: 5px">
+   <strong> 
+     _
+   o[ ]o
+   o| |o
+   o\ /o
+    |:|
+    |:| 
+    |:|  ♫
+    |:| ♩
+  _-|:|-_
+ (  |:|  )      
+  )  _  (
+ /  (_)  \
+|   ___   |
+ \ _ _ _ /
+</strong>
+
+ </div>
+<a href="https://www.instagram.com/dwedwardlim/" target="_blank" id="well" class="tree"style="position: fixed; top: 72%; left: 36%; z-index: 2; text-decoration: none; color: inherit; font-size: 6px">
+ <strong>
+  _  __  _  ___  _
+ [_][__][_][___][_]
+ [__][._][_][_][_.]
+ [_][_][__][_._][_]
+ [__][__][__][_][_]
+  </strong> </a>
+
+<div id="sun-btn" class="tree" style="position: fixed; top: 3%; right: 3%; z-index: 100; cursor: pointer; font-size: 8px; ">
+  \  _|_  /
+    / / \ 
+ - (// //) -
+    \_/_/ 
+  /   |   \
+</div>
+
+<div id="moon-btn" class="tree" style="position: fixed; top: 3%; right: 3%; z-index: 100; cursor: pointer; font-size: 8px; display: none;">
+    _ _ _ 
+   / .  _\ 
+  |   / *
+  |.  \_ _
+   \_ _ ./
+
+</div>
+
+<script>
+    const templates = document.querySelectorAll('#tree-templates .tree');
+    const container = document.getElementById('forest-container');
+    const myForestConfig = [
+        { type: 1, top: '10%', left: '0%', size: 12 },
+        { type: 0, top: '2%', left: '18%', size: 8 },
+        { type: 2, top: '30%', left: '24%', size: 8 },
+        { type: 0, top: '8%', left: '33%', size: 9 },
+        { type: 1, top: '3%', left: '48%', size: 6 },
+        { type: 3, top: '19%', left: '52%', size: 8 },
+        { type: 0, top: '7%', left: '62%', size: 7 },
+        { type: 2, top: '23%', left: '68%', size: 11 }, 
+        { type: 3, top: '5%', left: '82%', size: 8 },
+        { type: 1, top: '60%', left: '82%', size: 12 },
+        { type: 0, top: '43%', left: '90%', size: 7 },
+        { type: 2, top: '80%', left: '62%', size: 8 },
+        { type: 0, top: '58%', left: '56%', size: 9 },
+        { type: 1, top: '42%', left: '48%', size: 6 },
+        { type: 3, top: '52%', left: '38%', size: 13 },
+        { type: 0, top: '57%', left: '24%', size: 7 },
+        { type: 2, top: '73%', left: '14%', size: 11 }, 
+        { type: 3, top: '55%', left: '0%', size: 8 },
+
+    ];
+
+    const scaleFactor = window.innerWidth < 768 ? 0.6 : 1;
+
+myForestConfig.forEach(config => {
+    const newTree = templates[config.type].cloneNode(true);
+
+    newTree.style.top = config.top;
+    newTree.style.left = config.left;
+    newTree.style.fontSize = (config.size * scaleFactor) + 'px';
+    newTree.style.marginBottom = "20px";
+
+    container.appendChild(newTree);
+});
+
+    const musicPlayer = document.getElementById('guitar');
+    const myAudio = document.getElementById('myAudio');
+
+    musicPlayer.addEventListener('click', function() {
+        if (myAudio.paused) {
+            myAudio.play();
+        }
+        else {
+            myAudio.pause();
+        }
+    });
+
+    const sunBtn = document.getElementById('sun-btn');
+     const moonBtn = document.getElementById('moon-btn');
+    const body = document.body;
+  const html = document.documentElement;
+
+function toggleTheme() {
+    body.classList.toggle('dark-mode');
+    html.classList.toggle('dark-mode');
+
+    if (body.classList.contains('dark-mode')){
+        sunBtn.style.display = 'none';
+        moonBtn.style.display = 'block';
+    } else {
+        sunBtn.style.display = 'block';
+        moonBtn.style.display = 'none' ;
+    }
+}
+sunBtn.addEventListener('click', toggleTheme);
+moonBtn.addEventListener('click', toggleTheme);
+
+
+</script>
+
+
+</body>
+</html>

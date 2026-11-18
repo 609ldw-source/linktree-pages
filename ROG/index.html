@@ -1,0 +1,1212 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0a0a0f" />
+    <title>기타 소리에 반응하는 모래알 세계</title>
+
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #0a0a0f;
+      }
+
+      body {
+        touch-action: manipulation;
+      }
+
+      canvas {
+        display: block;
+      }
+
+      .overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        overflow: hidden;
+        padding: clamp(34px, 6vw, 92px);
+        color: #000;
+        background: #fff;
+        font-family:
+          "AppleMyungjo", "Batang", "Nanum Myeongjo", serif;
+        transition:
+          opacity 300ms ease,
+          visibility 300ms ease;
+      }
+
+      .overlay.hidden {
+        visibility: hidden;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .intro {
+        position: relative;
+        z-index: 2;
+        width: min(680px, 92vw);
+      }
+
+      h1 {
+        margin: 0 0 30px;
+        color: #000;
+        font-size: clamp(37px, 5.2vw, 76px);
+        font-weight: 400;
+        line-height: 1.22;
+        letter-spacing: -0.06em;
+        word-break: keep-all;
+      }
+
+      #status {
+        min-height: 78px;
+        margin: 0;
+        color: #000;
+        font-size: clamp(17px, 1.8vw, 25px);
+        line-height: 1.65;
+        white-space: pre-line;
+      }
+
+      #status p {
+        margin: 0 0 14px;
+      }
+
+      .guide {
+        margin: 38px 0 0;
+        font-size: clamp(17px, 1.8vw, 25px);
+        line-height: 1.65;
+      }
+
+      button {
+        width: auto;
+        min-height: 0;
+        margin-top: 26px;
+        padding: 9px 12px 8px;
+        border: 1px solid #000;
+        border-radius: 0;
+        color: #000;
+        background: #fff;
+        font: inherit;
+        font-size: clamp(17px, 1.65vw, 23px);
+        cursor: pointer;
+        transition:
+          color 120ms ease,
+          background-color 120ms ease,
+          opacity 120ms ease;
+      }
+
+      button:hover,
+      button:focus-visible {
+        color: #fff;
+        background: #000;
+        outline: none;
+      }
+
+      button:active {
+        opacity: 0.65;
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.55;
+      }
+
+      .hint {
+        margin: 14px 0 0;
+        color: #000;
+        font-size: clamp(13px, 1.1vw, 16px);
+        line-height: 1.55;
+      }
+
+      .ascii {
+        position: absolute;
+        z-index: 1;
+        margin: 0;
+        color: #000;
+        font-family: "Courier New", monospace;
+        white-space: pre;
+        user-select: none;
+      }
+
+      .guitar {
+        top: 13%;
+        right: clamp(5%, 9vw, 13%);
+        font-size: clamp(15px, 1.55vw, 24px);
+        line-height: 1.05;
+      }
+
+      .dust {
+        right: 27%;
+        bottom: 7%;
+        font-size: clamp(11px, 1.1vw, 16px);
+        line-height: 1.75;
+      }
+
+      .live {
+        position: fixed;
+        right: 18px;
+        bottom: calc(18px + env(safe-area-inset-bottom));
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.54);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.11em;
+        pointer-events: none;
+      }
+
+      .live::before {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #ff5f98;
+        box-shadow: 0 0 14px rgba(255, 95, 152, 0.8);
+        content: "";
+      }
+
+      @media (max-width: 900px) {
+        .overlay {
+          padding: 38px 24px 150px;
+        }
+
+        .intro {
+          width: 100%;
+        }
+
+        h1 {
+          margin-bottom: 24px;
+        }
+
+        .guide {
+          margin-top: 30px;
+        }
+
+        .guitar {
+          top: auto;
+          right: 24px;
+          bottom: 22px;
+          font-size: 11px;
+          opacity: 0.55;
+        }
+
+        .dust {
+          display: none;
+        }
+      }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.11.13/lib/p5.min.js"></script>
+  </head>
+
+  <body>
+    <main>
+      <section class="overlay" id="overlay" aria-live="polite">
+        <div class="intro">
+          <h1>
+            기타 소리에 반응하는<br />
+            모래알 세계입니다.
+          </h1>
+          <div id="status">
+            <p>마이크를 켜고 기타를 연주해 보세요.</p>
+            <p>소리의 높이와 크기에 따라 모래알이 움직입니다.</p>
+          </div>
+          <p class="guide">아래를 눌러 모래알 깨우기 ↓↓↓</p>
+          <button id="start-button" type="button">마이크 켜기</button>
+          <p class="hint">
+            ※ 브라우저가 물어보면 마이크 사용을 허용해 주세요.
+          </p>
+        </div>
+
+        <pre class="ascii guitar" aria-label="문자로 그린 기타">
+     _
+   o[ ]o
+   o| |o
+   o\ /o
+    |:|
+    |:|
+    |:|
+    |:|
+  *-|:|-*
+ (  |:|  )      
+  )  _  (
+ /  (_)  \
+|   ___   |
+ \ _ _ _ /
+        </pre>
+
+        <pre class="ascii dust" aria-hidden="true">
+          ·        *          .
+     .         ·        :
+           *        .        ·
+       :       ·         *
+        </pre>
+      </section>
+
+      <p class="live" id="live-indicator" hidden>마이크 입력 중</p>
+    </main>
+
+    <script id="app-script">
+      let audioContext;
+      let analyser;
+      let pitchAnalyser;
+      let dataArray;
+      let timeData;
+      let source;
+      let micStream;
+      let frequencyRanges;
+      let pitchBandStabilizer;
+      let visualSustainEnvelope;
+      let currentPitchBand = null;
+
+      let isAudioStarted = false;
+      let isAudioStarting = false;
+      let particles = [];
+
+      const PARTICLE_COUNT = 1500;
+      const GRID_CELL_SIZE = 14;
+
+      const overlay = document.getElementById("overlay");
+      const statusElement = document.getElementById("status");
+      const startButton = document.getElementById("start-button");
+      const liveIndicator = document.getElementById("live-indicator");
+
+      /* TESTABLE_CORE_START */
+      class SpatialGrid {
+        constructor(cellSize) {
+          this.cellSize = cellSize;
+          this.cells = new Map();
+        }
+
+        keyForCell(cellX, cellY) {
+          return `${cellX},${cellY}`;
+        }
+
+        cellCoordinates(particle) {
+          return [
+            Math.floor(particle.x / this.cellSize),
+            Math.floor(particle.y / this.cellSize)
+          ];
+        }
+
+        insert(particle) {
+          const [cellX, cellY] = this.cellCoordinates(particle);
+          const key = this.keyForCell(cellX, cellY);
+
+          if (!this.cells.has(key)) {
+            this.cells.set(key, []);
+          }
+
+          this.cells.get(key).push(particle);
+        }
+
+        rebuild(allParticles) {
+          this.cells.clear();
+          for (const particle of allParticles) {
+            this.insert(particle);
+          }
+        }
+
+        nearby(particle) {
+          const [cellX, cellY] = this.cellCoordinates(particle);
+          const candidates = [];
+
+          for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+            for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+              const key = this.keyForCell(
+                cellX + offsetX,
+                cellY + offsetY
+              );
+              const cell = this.cells.get(key);
+
+              if (cell) {
+                candidates.push(...cell);
+              }
+            }
+          }
+
+          return candidates;
+        }
+      }
+
+      function rmsFromTimeData(samples) {
+        let sum = 0;
+
+        for (let i = 0; i < samples.length; i += 1) {
+          const value = (samples[i] - 128) / 128;
+          sum += value * value;
+        }
+
+        return Math.sqrt(sum / samples.length);
+      }
+
+      class VisualSustainEnvelope {
+        constructor({ gate = 0.02, releaseMs = 2000 } = {}) {
+          this.gate = gate;
+          this.releaseMs = releaseMs;
+          this.value = 0;
+          this.releaseStartedAt = null;
+          this.releaseStartValue = 0;
+        }
+
+        update(rawVolume, nowMs) {
+          if (rawVolume >= this.gate) {
+            this.value = rawVolume;
+            this.releaseStartedAt = null;
+            this.releaseStartValue = rawVolume;
+            return this.value;
+          }
+
+          if (this.value <= 0) return 0;
+
+          if (this.releaseStartedAt === null) {
+            this.releaseStartedAt = nowMs;
+            this.releaseStartValue = this.value;
+          }
+
+          const progress = Math.max(
+            0,
+            Math.min(
+              1,
+              (nowMs - this.releaseStartedAt) / this.releaseMs
+            )
+          );
+          const smoothstep =
+            progress * progress * (3 - 2 * progress);
+          this.value =
+            this.releaseStartValue * (1 - smoothstep);
+
+          if (progress >= 1) this.value = 0;
+          return this.value;
+        }
+      }
+
+      function binRangeForHz(minHz, maxHz, sampleRate, fftSize) {
+        const hzPerBin = sampleRate / fftSize;
+        return [
+          Math.floor(minHz / hzPerBin),
+          Math.floor(maxHz / hzPerBin)
+        ];
+      }
+
+      const GUITAR_MIN_HZ = 82.41;
+      const GUITAR_MAX_HZ = 1318.51;
+      const LOW_MID_BOUNDARY_HZ = 213.75;
+      const MID_HIGH_BOUNDARY_HZ = 254.285;
+
+      function pitchBufferLengthForSampleRate(sampleRate) {
+        const requiredSamples = Math.ceil(
+          (sampleRate / GUITAR_MIN_HZ) * 3
+        );
+        let bufferLength = 2048;
+
+        while (bufferLength < requiredSamples && bufferLength < 32768) {
+          bufferLength *= 2;
+        }
+
+        return Math.min(bufferLength, 32768);
+      }
+
+      function classifyPitchBand(frequency) {
+        if (
+          !Number.isFinite(frequency) ||
+          frequency < GUITAR_MIN_HZ ||
+          frequency > GUITAR_MAX_HZ
+        ) {
+          return null;
+        }
+
+        if (frequency < LOW_MID_BOUNDARY_HZ) return "low";
+        if (frequency < MID_HIGH_BOUNDARY_HZ) return "mid";
+        return "high";
+      }
+
+      function median(values) {
+        const sorted = [...values].sort((a, b) => a - b);
+        const middle = Math.floor(sorted.length / 2);
+        return sorted.length % 2 === 0
+          ? (sorted[middle - 1] + sorted[middle]) / 2
+          : sorted[middle];
+      }
+
+      class PitchBandStabilizer {
+        constructor({ historySize = 5, confirmations = 3 } = {}) {
+          this.historySize = historySize;
+          this.confirmations = confirmations;
+          this.currentBand = null;
+          this.pendingBand = null;
+          this.pendingCount = 0;
+          this.frequencyHistory = [];
+        }
+
+        resetPending() {
+          this.pendingBand = null;
+          this.pendingCount = 0;
+          this.frequencyHistory = [];
+          return this.currentBand;
+        }
+
+        update(frequency) {
+          const rawBand = classifyPitchBand(frequency);
+          if (rawBand === null) {
+            return this.resetPending();
+          }
+
+          this.frequencyHistory.push(frequency);
+          this.frequencyHistory = this.frequencyHistory.slice(
+            -this.historySize
+          );
+
+          const smoothedBand = classifyPitchBand(
+            median(this.frequencyHistory)
+          );
+
+          if (smoothedBand === this.currentBand) {
+            this.pendingBand = null;
+            this.pendingCount = 0;
+            return this.currentBand;
+          }
+
+          if (smoothedBand !== this.pendingBand) {
+            this.pendingBand = smoothedBand;
+            this.pendingCount = 1;
+          } else {
+            this.pendingCount += 1;
+          }
+
+          if (this.pendingCount >= this.confirmations) {
+            this.currentBand = this.pendingBand;
+            this.pendingBand = null;
+            this.pendingCount = 0;
+          }
+
+          return this.currentBand;
+        }
+      }
+
+      function detectFundamentalFrequency(
+        samples,
+        sampleRate,
+        {
+          minHz = GUITAR_MIN_HZ,
+          maxHz = GUITAR_MAX_HZ,
+          minCorrelation = 0.65
+        } = {}
+      ) {
+        if (!samples || samples.length < 4 || !Number.isFinite(sampleRate)) {
+          return null;
+        }
+
+        const decimation = Math.max(
+          1,
+          Math.round(sampleRate / 48000)
+        );
+        const analysisSampleRate = sampleRate / decimation;
+        let analysisSamples = samples;
+
+        if (decimation > 1) {
+          const decimatedLength = Math.floor(
+            samples.length / decimation
+          );
+          const decimated = new Float32Array(decimatedLength);
+
+          for (let i = 0; i < decimatedLength; i += 1) {
+            let sum = 0;
+            const start = i * decimation;
+
+            for (let j = 0; j < decimation; j += 1) {
+              sum += samples[start + j];
+            }
+
+            decimated[i] = sum / decimation;
+          }
+
+          analysisSamples = decimated;
+        }
+
+        let mean = 0;
+        for (const sample of analysisSamples) mean += sample;
+        mean /= analysisSamples.length;
+
+        const centered = new Float32Array(analysisSamples.length);
+        let signalPower = 0;
+
+        for (let i = 0; i < analysisSamples.length; i += 1) {
+          centered[i] = (analysisSamples[i] - mean) / 128;
+          signalPower += centered[i] * centered[i];
+        }
+
+        if (
+          Math.sqrt(signalPower / analysisSamples.length) < 0.02
+        ) {
+          return null;
+        }
+
+        const minLag = Math.max(
+          2,
+          Math.floor(analysisSampleRate / (maxHz * 2))
+        );
+        const maxLag = Math.min(
+          analysisSamples.length - 3,
+          Math.ceil(analysisSampleRate / minHz)
+        );
+        const correlations = new Float32Array(maxLag + 2);
+        let strongest = 0;
+
+        for (let lag = minLag - 1; lag <= maxLag + 1; lag += 1) {
+          let cross = 0;
+          let leftPower = 0;
+          let rightPower = 0;
+
+          for (let i = 0; i < centered.length - lag; i += 1) {
+            const left = centered[i];
+            const right = centered[i + lag];
+            cross += left * right;
+            leftPower += left * left;
+            rightPower += right * right;
+          }
+
+          const denominator = Math.sqrt(leftPower * rightPower);
+          const correlation = denominator > 0 ? cross / denominator : 0;
+          correlations[lag] = correlation;
+          if (lag >= minLag) strongest = Math.max(strongest, correlation);
+        }
+
+        if (strongest < minCorrelation) return null;
+
+        const accepted = Math.max(minCorrelation, strongest * 0.9);
+        const peaks = [];
+
+        for (let lag = minLag; lag <= maxLag; lag += 1) {
+          if (
+            correlations[lag] >= accepted &&
+            correlations[lag] >= correlations[lag - 1] &&
+            correlations[lag] > correlations[lag + 1]
+          ) {
+            peaks.push({
+              lag,
+              correlation: correlations[lag]
+            });
+          }
+        }
+
+        if (peaks.length === 0) return null;
+
+        const firstPeak = peaks[0];
+        let selectedPeak = firstPeak;
+
+        for (let i = 1; i < peaks.length; i += 1) {
+          const candidate = peaks[i];
+          const ratio = candidate.lag / firstPeak.lag;
+          const ratioTolerance = Math.max(
+            0.03,
+            2 / firstPeak.lag
+          );
+          const isHarmonicCorrection =
+            Math.abs(ratio - 2) <= ratioTolerance ||
+            Math.abs(ratio - 3) <= ratioTolerance;
+
+          if (
+            isHarmonicCorrection &&
+            candidate.correlation >=
+              selectedPeak.correlation + 0.03
+          ) {
+            selectedPeak = candidate;
+          }
+        }
+
+        const left = correlations[selectedPeak.lag - 1];
+        const center = correlations[selectedPeak.lag];
+        const right = correlations[selectedPeak.lag + 1];
+        const curve = left - 2 * center + right;
+        const offset = Math.abs(curve) > 0.000001
+          ? 0.5 * (left - right) / curve
+          : 0;
+        const refinedLag =
+          selectedPeak.lag +
+          Math.max(-0.5, Math.min(0.5, offset));
+        const rawFrequency = analysisSampleRate / refinedLag;
+        const boundaryTolerance = 0.0001;
+
+        if (
+          rawFrequency < minHz * (1 - boundaryTolerance) ||
+          rawFrequency > maxHz * (1 + boundaryTolerance)
+        ) {
+          return null;
+        }
+
+        const frequency = Math.min(
+          maxHz,
+          Math.max(minHz, rawFrequency)
+        );
+
+        return { frequency, confidence: center };
+      }
+      /* TESTABLE_CORE_END */
+
+      const spatialGrid = new SpatialGrid(GRID_CELL_SIZE);
+
+      function setup() {
+        const canvas = createCanvas(windowWidth, windowHeight);
+        canvas.attribute("aria-hidden", "true");
+        pixelDensity(Math.min(window.devicePixelRatio || 1, 2));
+
+        for (let i = 0; i < PARTICLE_COUNT; i += 1) {
+          particles.push(new Particle());
+        }
+      }
+
+      function draw() {
+        background(10, 10, 15, 110);
+
+        if (!isAudioStarted) {
+          drawSleepingParticles();
+          return;
+        }
+
+        analyser.getByteFrequencyData(dataArray);
+        pitchAnalyser.getByteTimeDomainData(timeData);
+
+        const rawVolume = rmsFromTimeData(timeData);
+        const visualVolume = visualSustainEnvelope.update(
+          rawVolume,
+          millis()
+        );
+        const bass = getFrequencyEnergy(...frequencyRanges.bass);
+        const mid = getFrequencyEnergy(...frequencyRanges.mid);
+        const treble = getFrequencyEnergy(...frequencyRanges.treble);
+
+        if (rawVolume < 0.02) {
+          currentPitchBand = pitchBandStabilizer.resetPending();
+        } else if (frameCount % 2 === 0) {
+          const pitch = detectFundamentalFrequency(
+            timeData,
+            audioContext.sampleRate
+          );
+
+          currentPitchBand = pitchBandStabilizer.update(
+            pitch && pitch.confidence >= 0.65
+              ? pitch.frequency
+              : null
+          );
+        }
+
+        const wMid = map(mid, 0.01, 0.3, 0, 1, true);
+        const wTreble = map(treble, 0.01, 0.45, 0, 1, true);
+
+        spatialGrid.rebuild(particles);
+
+        for (const particle of particles) {
+          particle.update(
+            visualVolume,
+            bass,
+            mid,
+            treble,
+            currentPitchBand,
+            spatialGrid
+          );
+          particle.display(wMid, wTreble);
+        }
+      }
+
+      function drawSleepingParticles() {
+        for (const particle of particles) {
+          particle.drift();
+          particle.display(0, 0);
+        }
+      }
+
+      function getFrequencyEnergy(startBin, endBin) {
+        let sum = 0;
+        let count = 0;
+        const safeEnd = Math.min(endBin, dataArray.length - 1);
+
+        for (let i = Math.max(0, startBin); i <= safeEnd; i += 1) {
+          sum += dataArray[i];
+          count += 1;
+        }
+
+        return count > 0 ? sum / count / 255 : 0;
+      }
+
+      class Particle {
+        constructor() {
+          this.x = random(width);
+          this.y = random(height);
+          this.vx = 0;
+          this.vy = 0;
+          this.ax = 0;
+          this.ay = 0;
+          this.maxSpeed = 10;
+          this.maxForce = 3;
+          this.size = random(1.5, 3.5);
+        }
+
+        drift() {
+          const angle =
+            noise(
+              this.x * 0.005,
+              this.y * 0.005,
+              frameCount * 0.005
+            ) * TWO_PI;
+
+          this.vx = lerp(this.vx, cos(angle) * 0.35, 0.035);
+          this.vy = lerp(this.vy, sin(angle) * 0.35, 0.035);
+          this.x += this.vx;
+          this.y += this.vy;
+          this.edges();
+        }
+
+        update(
+          volume,
+          bass,
+          mid,
+          treble,
+          pitchBand,
+          grid
+        ) {
+          this.separate(grid.nearby(this));
+
+          if (volume <= 0) {
+            const angle =
+              noise(
+                this.x * 0.005,
+                this.y * 0.005,
+                frameCount * 0.005
+              ) * TWO_PI;
+            this.ax += cos(angle) * 0.3;
+            this.ay += sin(angle) * 0.3;
+          } else {
+            const noiseScale = map(
+              volume,
+              0,
+              0.3,
+              0.005,
+              0.02,
+              true
+            );
+            const angle =
+              noise(
+                this.x * noiseScale,
+                this.y * noiseScale,
+                frameCount * 0.01
+              ) *
+              TWO_PI *
+              2;
+            const flowAmount = map(
+              volume,
+              0,
+              0.3,
+              0,
+              2,
+              true
+            );
+
+            this.ax += cos(angle) * flowAmount;
+            this.ay += sin(angle) * flowAmount;
+
+            let targetX;
+            let targetY;
+
+            if (pitchBand === "low") {
+              const minimumRadius = width * 0.125;
+              const radius = map(
+                volume,
+                0,
+                0.3,
+                minimumRadius,
+                width * 0.35,
+                true
+              );
+              const currentAngle = atan2(
+                this.y - height / 2,
+                this.x - width / 2
+              );
+              const step = 35;
+              const ringRadius = Math.max(
+                minimumRadius,
+                Math.round(radius / step) * step
+              );
+
+              targetX =
+                width / 2 + cos(currentAngle) * ringRadius;
+              targetY =
+                height / 2 + sin(currentAngle) * ringRadius;
+            } else if (pitchBand === "mid") {
+              targetX = this.x;
+              const waveAmplitude = map(
+                volume,
+                0,
+                0.3,
+                0,
+                height * 0.25,
+                true
+              );
+              targetY =
+                height / 2 +
+                sin(this.x * 0.008 + frameCount * 0.06) *
+                  waveAmplitude;
+            } else if (pitchBand === "high") {
+              const currentAngle = atan2(
+                this.y - height / 2,
+                this.x - width / 2
+              );
+              const distanceFromCenter = dist(
+                this.x,
+                this.y,
+                width / 2,
+                height / 2
+              );
+              const spinStep = map(
+                volume,
+                0,
+                0.3,
+                0,
+                0.25,
+                true
+              );
+              const spinAngle = currentAngle + spinStep;
+
+              targetX =
+                width / 2 + cos(spinAngle) * distanceFromCenter;
+              targetY =
+                height / 2 + sin(spinAngle) * distanceFromCenter;
+            }
+
+            if (Number.isFinite(targetX) && Number.isFinite(targetY)) {
+              this.seek(targetX, targetY);
+            }
+          }
+
+          this.integrate(volume);
+        }
+
+        seek(targetX, targetY) {
+          let desiredX = targetX - this.x;
+          let desiredY = targetY - this.y;
+          const distance = Math.sqrt(
+            desiredX * desiredX + desiredY * desiredY
+          );
+
+          if (distance <= 0.1) return;
+
+          const magnitude =
+            distance < 60
+              ? map(distance, 0, 60, 0, this.maxSpeed)
+              : this.maxSpeed;
+
+          desiredX = (desiredX / distance) * magnitude;
+          desiredY = (desiredY / distance) * magnitude;
+
+          let steerX = desiredX - this.vx;
+          let steerY = desiredY - this.vy;
+          const steerMagnitude = Math.sqrt(
+            steerX * steerX + steerY * steerY
+          );
+
+          if (steerMagnitude > this.maxForce) {
+            steerX =
+              (steerX / steerMagnitude) * this.maxForce;
+            steerY =
+              (steerY / steerMagnitude) * this.maxForce;
+          }
+
+          this.ax += steerX;
+          this.ay += steerY;
+        }
+
+        integrate(volume) {
+          this.vx += this.ax;
+          this.vy += this.ay;
+
+          const speed = Math.sqrt(
+            this.vx * this.vx + this.vy * this.vy
+          );
+          const speedLimit = this.maxSpeed * (1 + volume * 1.2);
+
+          if (speed > speedLimit) {
+            this.vx = (this.vx / speed) * speedLimit;
+            this.vy = (this.vy / speed) * speedLimit;
+          }
+
+          this.x += this.vx;
+          this.y += this.vy;
+          this.ax = 0;
+          this.ay = 0;
+          this.edges();
+        }
+
+        separate(nearbyParticles) {
+          const desiredSeparation = 7;
+          let steerX = 0;
+          let steerY = 0;
+          let count = 0;
+
+          for (const other of nearbyParticles) {
+            if (other === this) continue;
+
+            const differenceX = this.x - other.x;
+            const differenceY = this.y - other.y;
+
+            if (
+              Math.abs(differenceX) >= desiredSeparation ||
+              Math.abs(differenceY) >= desiredSeparation
+            ) {
+              continue;
+            }
+
+            const distance = Math.sqrt(
+              differenceX * differenceX +
+                differenceY * differenceY
+            );
+
+            if (distance > 0 && distance < desiredSeparation) {
+              const pushStrength = map(
+                distance,
+                0,
+                desiredSeparation,
+                5,
+                0
+              );
+
+              steerX +=
+                (differenceX / distance) * pushStrength;
+              steerY +=
+                (differenceY / distance) * pushStrength;
+              count += 1;
+            }
+          }
+
+          if (count === 0) return;
+
+          steerX /= count;
+          steerY /= count;
+
+          const steerMagnitude = Math.sqrt(
+            steerX * steerX + steerY * steerY
+          );
+
+          if (steerMagnitude === 0) return;
+
+          steerX =
+            (steerX / steerMagnitude) * this.maxSpeed - this.vx;
+          steerY =
+            (steerY / steerMagnitude) * this.maxSpeed - this.vy;
+
+          const limitMagnitude = Math.sqrt(
+            steerX * steerX + steerY * steerY
+          );
+          const forceLimit = this.maxForce * 1.2;
+
+          if (limitMagnitude > forceLimit) {
+            steerX =
+              (steerX / limitMagnitude) * forceLimit;
+            steerY =
+              (steerY / limitMagnitude) * forceLimit;
+          }
+
+          this.ax += steerX;
+          this.ay += steerY;
+        }
+
+        edges() {
+          if (!Number.isFinite(this.x) || !Number.isFinite(this.y)) {
+            this.x = random(width);
+            this.y = random(height);
+            this.vx = 0;
+            this.vy = 0;
+            return;
+          }
+
+          if (this.x < 0) this.x = width;
+          if (this.x > width) this.x = 0;
+          if (this.y < 0) this.y = height;
+          if (this.y > height) this.y = 0;
+        }
+
+        display(wMid, wTreble) {
+          let particleColor = lerpColor(
+            color(70, 110, 255, 200),
+            color(255, 70, 150, 200),
+            wMid
+          );
+          particleColor = lerpColor(
+            particleColor,
+            color(255, 225, 90, 240),
+            wTreble
+          );
+
+          noStroke();
+          fill(particleColor);
+          ellipse(this.x, this.y, this.size);
+        }
+      }
+
+      async function startMicrophone() {
+        if (isAudioStarted || isAudioStarting) return;
+
+        isAudioStarting = true;
+        startButton.disabled = true;
+        startButton.textContent = "마이크 연결 중…";
+        statusElement.textContent =
+          "Safari의 마이크 권한을 확인하고 있습니다.";
+
+        try {
+          assertSecureMediaContext();
+
+          const AudioContextClass =
+            window.AudioContext || window.webkitAudioContext;
+
+          if (!AudioContextClass) {
+            const error = new Error(
+              "이 브라우저에서는 Web Audio를 사용할 수 없습니다."
+            );
+            error.name = "UnsupportedError";
+            throw error;
+          }
+
+          if (!audioContext) {
+            audioContext = new AudioContextClass();
+          }
+
+          if (audioContext.state === "suspended") {
+            await audioContext.resume();
+          }
+
+          micStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: false
+          });
+
+          source = audioContext.createMediaStreamSource(micStream);
+          analyser = audioContext.createAnalyser();
+          analyser.fftSize = 4096;
+          analyser.smoothingTimeConstant = 0.72;
+          source.connect(analyser);
+
+          pitchAnalyser = audioContext.createAnalyser();
+          pitchAnalyser.fftSize = pitchBufferLengthForSampleRate(
+            audioContext.sampleRate
+          );
+          source.connect(pitchAnalyser);
+
+          dataArray = new Uint8Array(analyser.frequencyBinCount);
+          timeData = new Uint8Array(pitchAnalyser.fftSize);
+          pitchBandStabilizer = new PitchBandStabilizer();
+          visualSustainEnvelope = new VisualSustainEnvelope({
+            gate: 0.02,
+            releaseMs: 2000
+          });
+          frequencyRanges = {
+            bass: binRangeForHz(
+              82.4,
+              164.8,
+              audioContext.sampleRate,
+              analyser.fftSize
+            ),
+            mid: binRangeForHz(
+              174.6,
+              329.6,
+              audioContext.sampleRate,
+              analyser.fftSize
+            ),
+            treble: binRangeForHz(
+              349.2,
+              1318.5,
+              audioContext.sampleRate,
+              analyser.fftSize
+            )
+          };
+
+          isAudioStarted = true;
+          liveIndicator.hidden = false;
+          overlay.classList.add("hidden");
+        } catch (error) {
+          console.error("Microphone start failed:", error);
+          statusElement.textContent =
+            microphoneErrorMessage(error);
+          startButton.textContent = "다시 시도";
+          startButton.disabled = false;
+        } finally {
+          isAudioStarting = false;
+        }
+      }
+
+      function assertSecureMediaContext() {
+        const isLocalhost =
+          location.hostname === "localhost" ||
+          location.hostname === "127.0.0.1";
+
+        if (!window.isSecureContext && !isLocalhost) {
+          const error = new Error(
+            "마이크는 HTTPS 또는 localhost에서만 사용할 수 있습니다."
+          );
+          error.name = "SecurityError";
+          throw error;
+        }
+
+        if (!navigator.mediaDevices?.getUserMedia) {
+          const error = new Error(
+            "이 브라우저에서는 마이크 입력을 사용할 수 없습니다."
+          );
+          error.name = "UnsupportedError";
+          throw error;
+        }
+      }
+
+      function microphoneErrorMessage(error) {
+        switch (error.name) {
+          case "NotAllowedError":
+            return "마이크 권한이 거부되었습니다.\nSafari 웹사이트 설정에서 마이크를 ‘허용’으로 바꿔 주세요.";
+          case "NotFoundError":
+            return "사용 가능한 마이크를 찾지 못했습니다.\nMac의 사운드 입력 설정을 확인해 주세요.";
+          case "NotReadableError":
+            return "다른 앱이 마이크를 사용 중이거나 입력 장치를 열 수 없습니다.";
+          case "SecurityError":
+          case "UnsupportedError":
+            return error.message;
+          default:
+            return `마이크를 시작하지 못했습니다.\n${error.name || "UnknownError"}`;
+        }
+      }
+
+      function windowResized() {
+        const previousWidth = width;
+        const previousHeight = height;
+
+        resizeCanvas(windowWidth, windowHeight);
+
+        for (const particle of particles) {
+          particle.x =
+            previousWidth > 0
+              ? (particle.x / previousWidth) * width
+              : random(width);
+          particle.y =
+            previousHeight > 0
+              ? (particle.y / previousHeight) * height
+              : random(height);
+        }
+      }
+
+      startButton.addEventListener("click", startMicrophone);
+    </script>
+  </body>
+</html>

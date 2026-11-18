@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>아카레코드(AKARECORD) - 음악 리뷰·감상·아카이빙 플랫폼</title>
+    <style>
+        :root {
+            --primary-color: #9a2b2b; 
+            --text-main: #333333;
+            --text-muted: #666666;
+            --bg-color: #f8f9fa;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.7;
+            margin: 0;
+            padding: 0;
+            word-break: keep-all;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .intro-section {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+            margin-bottom: 40px;
+        }
+
+        .intro-section p {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+
+        .intro-section p:last-child {
+            margin-bottom: 0;
+        }
+
+        .highlight {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .gallery-section {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .gallery-item {
+            text-align: center;
+        }
+
+        .gallery-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            border: 1px solid #eaeaea;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            display: block;
+        }
+
+        .cta-section {
+            text-align: center;
+            padding: 40px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #eaeaea;
+        }
+
+        .cta-section p {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.05rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 14px 28px;
+            background-color: var(--primary-color);
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 700;
+            border-radius: 8px;
+            transition: opacity 0.2s ease, transform 0.1s ease;
+        }
+
+        .cta-button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>AKARECORD</h1>
+            <div class="subtitle">음악 리뷰 · 감상 · 아카이빙 플랫폼</div>
+        </header>
+
+        <section class="intro-section">
+            <p><strong>아카레코드(AKARECORD)</strong>는 앨범을 듣고 감상을 나눌 곳이 없다는 아쉬움에서 시작된 1인 프로젝트입니다.</p>
+            <p>사용자는 청취한 앨범에 별점을 남기고, 감상평을 적으며 자신만의 청취 기록을 아카이빙 할 수 있어요.</p>
+            <p>평소 스트리밍 사이트엔 참여진과 크레딧이 자세히 제공되지 않는 부분에 아쉬움을 느꼈어요. 앨범 상세 페이지에서 <span class="highlight">참여진들을 확인하고, 그들의 다른 작업물들을 손쉽게 탐색</span>할 수 있도록 구현했습니다.</p>
+        </section>
+
+        <section class="gallery-section">
+            <div class="gallery-item">
+                <img src="image1.png" alt="아카레코드 앨범 상세 트랙리스트 화면">
+            </div>
+            <div class="gallery-item">
+                <img src="image2.png" alt="아카레코드 리뷰 및 별점 작성 화면">
+            </div>
+            <div class="gallery-item">
+                <img src="image3.png" alt="아카레코드 사용자 프로필 및 기록 화면">
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <p>현재 코덱스와 함께 개발 중입니다.</p>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">(26년 말을 목표로 열심히 토큰을 태우고 있어요)</p>
+            
+            <a href="https://www.instagram.com/dwedwardlim/" class="cta-button" target="_blank">
+                임동우 인스타그램 팔로우하고 베타 테스터 되기
+            </a>
+        </section>
+    </div>
+
+</body>
+</html>

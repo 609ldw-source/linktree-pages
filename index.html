@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="ko" id="top">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>임동우 링크나무</title>
+  <link rel="icon" type="image/png" href="pavicon.png">
+  <link rel="apple-touch-icon" href="pavicon.png">
+  
+  <style>
+    :root {
+        --bg-color: #ffffff;
+        --text-color: #1a1a1a; 
+        --card-bg: rgba(255, 255, 255, 0.85);
+        --card-border: #e0e0e0;
+        --card-hover: rgba(240, 240, 240, 0.95);
+    }
+
+    html.dark-mode, body.dark-mode {
+        --bg-color: #1a1a1a;
+        --text-color: #e0e0e0; 
+        --card-bg: rgba(40, 40, 40, 0.85);
+        --card-border: #444444;
+        --card-hover: rgba(60, 60, 60, 0.95);
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        transition: background-color 0.8s ease, color 0.8s ease;
+        -webkit-text-size-adjust: 100%;
+        overflow-x: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", sans-serif;
+    }
+
+    a {
+        color: var(--text-color); 
+        text-decoration: none;    
+        -webkit-tap-highlight-color: transparent; 
+    }
+
+    #forest-container {
+        position: fixed;
+        top: 0; left: 0;
+        height: 100vh;
+        width: 100vw;
+        z-index: 0; 
+        pointer-events: none; 
+        overflow: hidden;
+    }
+
+    .tree {
+        font-family: 'Courier New', Courier, monospace;
+        white-space: pre; 
+        line-height: 1.1; 
+        position: absolute;
+    }
+
+    .linktree {
+        position: relative;
+        z-index: 10; 
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 8vh 24px 4vh 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .spring-button {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        margin-bottom: 2rem;
+        border-radius: 50%;
+        -webkit-tap-highlight-color: transparent;
+        outline: none;
+    }
+
+    .logo {
+        width: var(--image-width, 120px);
+        height: var(--image-width, 120px);
+        border-radius: 50%;
+        object-fit: cover;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border: 3px solid var(--card-border);
+    }
+
+    .links {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .link-card {
+        display: block;
+        width: 100%;
+        padding: 18px 24px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        text-align: center;
+        text-decoration: none;
+        color: var(--text-color);
+        font-weight: 600;
+        font-size: 1.05rem;
+        box-sizing: border-box;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+        outline: none;
+    }
+
+    .link-card:hover {
+        transform: translateY(-2px);
+        background: var(--card-hover);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .link-card:focus, .link-card:active {
+        outline: none;
+    }
+
+    /* 테마 변경 버튼 */
+    #sun-btn, #moon-btn {
+        position: fixed; 
+        top: 3%; right: 3%; 
+        z-index: 100; 
+        cursor: pointer; 
+        font-size: 8px;
+        color: var(--text-color);
+    }
+
+    /* 모바일 반응형 처리 */
+    @media (max-width: 768px) {
+        .logo { width: 100px; height: 100px; }
+        .linktree { padding: 6vh 20px; }
+        .link-card { font-size: 1rem; padding: 16px 20px; }
+        #sun-btn, #moon-btn { font-size: 6px; top: 2%; right: 5%; }
+    }
+  </style>
+</head>
+<body>
+
+    <div id="tree-templates" style="display:none;">
+        <div class="tree tree0">
+         /\
+        //\\  
+       //  \\
+      //  . \\
+       /\  /\
+      // .  \\
+     //    _ \\
+    //  .     \\
+   //      *  \\
+    /\ _      /\
+   // .      / \\
+  //   *     _  \\
+ // _ _ _  _ _ _ \\
+        H-H
+        H-H    
+        H H
+        H-H     
+        H H  
+        H H   
+  ______H-H______</div>
+        <div class="tree tree1">
+         /\
+        //\\  
+       //  \\
+      //._  \\
+       /\  /\
+      //.  _\\
+     /.*      \
+    //   .    \\
+   // _     .  \\
+    /\        /\
+   //   .    / \\
+  // _     *  . \\
+ // _ _ _  _ _ _ \\
+        H-H
+        H-H    ~
+        H-H
+        H H   _
+    ~   H H  {O}
+        H-H   |
+  _*____H H__\|/__</div>
+        <div class="tree tree2">
+         /\
+        //\\  
+       //  \\
+      //_ . \\
+       /\  /\
+      //   _\\
+     //   .   \
+    // *     .\\
+   //   _      \\
+    /\      * /\
+   //    .   / \\
+  // _        . \\
+ // _ _ _  _ _ _ \\
+        H H
+        H H
+   ~    H-H  
+        H-H  |
+        H_H  *
+        H H    
+  __~___H H______</div>
+        <div class="tree tree3">
+         /\
+        //\\  
+       //  \\
+      // *  \\
+       /\  /\
+      // .  \\
+     //       \
+    //  _    .\\
+   //       *  \\
+    /\        /\
+   //     _  / \\
+  //  *         \\
+ // _ _ _  _ _ _ \\
+    :   H H
+    :   H-H  ~
+    :   H H  
+  \[]/  H-H    ~
+  /[]\  H H   
+        H-H    
+  ______H-H______</div>
+    </div>
+
+   
+    <div id="forest-container"></div>
+
+    
+    <div id="sun-btn" class="tree">
+  \  _|_  /
+    / / \ 
+ - (// //) -
+    \_/_/ 
+  /   |   \
+    </div>
+    <div id="moon-btn" class="tree" style="display: none;">
+    _ _ _ 
+   / .  _\ 
+  |   / *
+  |.  \_ _
+   \_ _ ./
+    </div>
+
+    <main class="linktree" style="--image-width: 140px;">
+        <button class="spring-button" type="button" data-spring-button aria-label="크리퍼">
+            <img class="logo" src="alexandra.png" alt="프로필 이미지">
+        </button>
+
+        <div class="links" aria-label="임동우 링크 목록">
+            <a class="link-card" href="dwhandweb/index.html">
+                <span class="link-title">handmade-website</span>
+            </a>
+            <a class="link-card" href="AVA/index.html">
+                <span class="link-title">AVA: Audio to Video Agent</span>
+            </a>
+            <a class="link-card" href="ROG/index.html">
+                <span class="link-title">기타의 울림을 눈으로 느껴보아요 . .</span>
+            </a>
+            <a class="link-card" href="akarecord/index.html">
+                <span class="link-title">아카레코드: 음악 리뷰·감상·아카이빙 플랫폼</span>
+            </a>
+
+            <a class="link-card" href="orbitaweb/index.html">
+                <span class="link-title">ORBITAweb: Playtronica 사의 Orbita를 웹으로 구현했어요.</span>
+            </a>
+
+            <a class="link-card" href="SGR/index.html">
+                <span class="link-title">신비와 함께 기타 배우기 ♫</span>
+            </a>
+        </div>
+    </main>
+
+    <script>
+        const templates = document.querySelectorAll('#tree-templates .tree');
+        const container = document.getElementById('forest-container');
+        
+        const myForestConfig = [
+            { type: 1, top: '5%', left: '2%', size: 10 },
+            { type: 0, top: '25%', left: '12%', size: 8 },
+            { type: 2, top: '45%', left: '5%', size: 9 },
+            { type: 3, top: '65%', left: '15%', size: 7 },
+            { type: 0, top: '80%', left: '2%', size: 11 },
+            { type: 1, top: '15%', left: '20%', size: 6 },
+            
+            { type: 3, top: '8%', left: '78%', size: 9 },
+            { type: 1, top: '30%', left: '88%', size: 7 },
+            { type: 0, top: '50%', left: '75%', size: 10 },
+            { type: 2, top: '70%', left: '85%', size: 8 },
+            { type: 0, top: '85%', left: '92%', size: 11 },
+            { type: 3, top: '20%', left: '92%', size: 6 },
+        ];
+
+        const scaleFactor = window.innerWidth < 768 ? 0.45 : 0.8;
+
+        myForestConfig.forEach(config => {
+            const newTree = templates[config.type].cloneNode(true);
+            newTree.style.top = config.top;
+            newTree.style.left = config.left;
+            newTree.style.fontSize = (config.size * scaleFactor) + 'px';
+            container.appendChild(newTree);
+        });
+
+
+        (() => {
+            const springButton = document.querySelector("[data-spring-button]");
+            if (!springButton) return;
+
+            let currentAnimation;
+            const jumpKeyframes = [
+                { transform: "translateY(0)" },
+                { transform: "translateY(-30px)" },
+                { transform: "translateY(0)" }
+            ];
+
+            const reducedMotionKeyframes = [
+                { opacity: 1 },
+                { opacity: 0.82 },
+                { opacity: 1 }
+            ];
+
+            function jump() {
+                currentAnimation?.cancel();
+                if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                    currentAnimation = springButton.animate(reducedMotionKeyframes, {
+                        duration: 160,
+                        easing: "ease-out"
+                    });
+                    return;
+                }
+                currentAnimation = springButton.animate(jumpKeyframes, {
+                    duration: 440,
+                    easing: "cubic-bezier(.25, .8, .35, 1)"
+                });
+            }
+            springButton.addEventListener("click", jump);
+        })();
+
+        const sunBtn = document.getElementById('sun-btn');
+        const moonBtn = document.getElementById('moon-btn');
+        const body = document.body;
+        const html = document.documentElement;
+
+        function toggleTheme() {
+            body.classList.toggle('dark-mode');
+            html.classList.toggle('dark-mode');
+
+            if (body.classList.contains('dark-mode')){
+                sunBtn.style.display = 'none';
+                moonBtn.style.display = 'block';
+            } else {
+                sunBtn.style.display = 'block';
+                moonBtn.style.display = 'none';
+            }
+        }
+        
+        sunBtn.addEventListener('click', toggleTheme);
+        moonBtn.addEventListener('click', toggleTheme);
+    </script>
+</body>
+</html>
