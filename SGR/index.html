@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>신비아파트 기타 연습</title>
+    <link rel="stylesheet" href="clementine.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
         
@@ -372,6 +373,7 @@
             <button class="mode-btn" id="mode-scale-btn">도레미파솔라시도 연습</button>
             <button class="mode-btn btn-green" id="mode-open-btn">개방현 (6줄) 연습</button>
             <button class="mode-btn btn-yellow" id="mode-song-btn">작은별 연주하기 ⭐️</button>
+            <button class="mode-btn btn-green" id="mode-clementine-btn">🎵 클레멘타인 · 4마디씩 따라 치기</button>
             <button class="mode-btn btn-purple" id="mode-base-menu-btn">🎸 베이스 음 (5, 6번줄) 외우기</button>
             <button class="mode-btn btn-pink" id="mode-chord-btn">🎸 코드 스트로크 연습 (랜덤 6단계)</button>
         </div>
@@ -413,9 +415,28 @@
                 </div>
             </div>
 
+            <section id="clementine-panel" aria-label="클레멘타인 멜로디 연습">
+                <div class="clem-heading"><p id="clem-range"></p><span id="clem-counter"></span></div>
+                <div class="clem-parts" aria-label="연습 구간 선택">
+                    <button id="clem-part-0" class="clem-part" type="button">1구간</button>
+                    <button id="clem-part-1" class="clem-part" type="button">2구간</button>
+                    <button id="clem-part-2" class="clem-part" type="button">3구간</button>
+                    <button id="clem-part-3" class="clem-part" type="button">4구간</button>
+                </div>
+                <h2 id="clem-target" aria-live="polite"></h2>
+                <div id="clementine-score"></div>
+                <p id="clem-feedback" role="status" aria-live="polite"></p>
+                <p class="clem-caption">위 멜로디만 연주해요 · 표준 튜닝 · 카포 없이<br>시범은 원래 리듬, 따라 치기는 시간 제한 없이!<br>제공 악보의 위 성부 · 편곡 WoojeongPark (박우정)</p>
+            </section>
             </div>
             <div id="practice-controls">
             <div id="status-message" class="status-wait" role="status" aria-live="polite">기타 지판을 잡고 준비해주세요!</div>
+            <div id="clem-controls">
+                <button id="clem-demo-btn" type="button">▶ 시범 듣기</button>
+                <button id="clem-stop-btn" type="button" hidden>■ 시범 멈추기</button>
+                <button id="clem-reset-btn" type="button" hidden>↻ 구간 다시 연습</button>
+                <button id="clem-next-btn" type="button" hidden>다음 4마디 →</button>
+            </div>
             <div class="mic-controls">
                 <span id="mic-input-status" role="status" aria-live="polite">소리 듣기 시작을 누르면 마이크를 연결해요.</span>
                 <meter id="mic-level" min="0" max="1" value="0" aria-label="마이크 입력 크기"></meter>
@@ -441,6 +462,7 @@
 
     <div id="debug-freq">인식된 Hz: 0.0</div>
 
+    <script src="clementine.js"></script>
     <script>
         // --- 1. 베이스 연습 전용 X 좌표 (fretboard.jpeg): 0~12프렛 ---
         const bassFretXPositions = [
@@ -692,6 +714,7 @@
 
         // --- 모드 세팅 ---
         function initMode(mode) {
+            if (clementineLesson) clementineLesson.stop();
             cancelAdvance();
             sessionVersion++;
             listenRequest++;
@@ -701,12 +724,19 @@
 
             practiceScreen.classList.toggle('bass-mode', mode === 'base-c' || mode === 'base-chromatic');
             practiceScreen.classList.toggle('chord-mode', mode === 'chord');
-            document.getElementById('fretboard-container').style.display = mode === 'chord' ? 'none' : 'block';
+            practiceScreen.classList.toggle('clementine-mode', mode === 'clementine');
+            document.getElementById('fretboard-container').style.display = mode === 'chord' || mode === 'clementine' ? 'none' : 'block';
             document.getElementById('chord-panel').style.display = mode === 'chord' ? 'block' : 'none';
-            debugFreq.style.display = mode === 'chord' ? 'none' : 'block';
+            debugFreq.style.display = mode === 'chord' || mode === 'clementine' ? 'none' : 'block';
             retryBtn.innerText = mode === 'chord' ? '🔄 다시 시도하기' : '🔄 같은 음 다시 치기';
 
-            if (mode === 'chord') {
+            if (mode === 'clementine') {
+                progressTag.style.display = 'block';
+                homeScreen.style.display = 'none';
+                practiceScreen.style.display = 'flex';
+                clementineLesson.enter();
+                return;
+            } else if (mode === 'chord') {
                 activeData = shuffledChordRound();
                 progressTag.style.display = 'block';
             } else if (mode === 'scale') {
@@ -740,6 +770,7 @@
         }
 
         function showHomeScreen() {
+            if (clementineLesson) clementineLesson.stop();
             cancelAdvance();
             sessionVersion++;
             listenRequest++;
@@ -768,7 +799,7 @@
                 document.getElementById('chord-detected').innerText = '';
             }
 
-            redDot.style.display = currentMode === 'chord' ? 'none' : 'block';
+            redDot.style.display = currentMode === 'chord' || currentMode === 'clementine' ? 'none' : 'block';
             redDot.style.left = currentNote.x;
             redDot.style.top = currentNote.y;
 
@@ -788,6 +819,7 @@
             micReconnectBtn.disabled = false;
             retryBtn.style.display = "none";
             nextBtn.style.display = "none";
+            if (currentMode === 'clementine') clementineLesson.decorateTarget();
         }
 
         startListenBtn.addEventListener('click', () => {
@@ -796,6 +828,7 @@
 
         function startAutoListen() {
             if (!currentMode || isCorrect || document.hidden) return Promise.resolve(false);
+            if (currentMode === 'clementine' && !clementineLesson.canListen()) return Promise.resolve(false);
             const request = ++listenRequest;
             const version = sessionVersion;
             // This call stays in the button's gesture: resume and getUserMedia
@@ -818,6 +851,7 @@
             characterImg.src = "shinbi_2.png"; 
             setStatus(currentMode === 'song' ? "다음 음을 연주해주세요 🎸" : "기타 소리를 듣고 있어요 🎸", "status-listen");
             startListenBtn.style.display = "none";
+            if (currentMode === 'clementine') clementineLesson.listeningStarted();
 
             if (currentMode === 'chord') {
                 resetChordAttempt();
@@ -937,6 +971,7 @@
         document.getElementById('mode-scale-btn').addEventListener('click', () => initMode('scale'));
         document.getElementById('mode-open-btn').addEventListener('click', () => initMode('open'));
         document.getElementById('mode-song-btn').addEventListener('click', () => initMode('song'));
+        document.getElementById('mode-clementine-btn').addEventListener('click', () => initMode('clementine'));
         document.getElementById('mode-chord-btn').addEventListener('click', () => initMode('chord'));
 
         document.getElementById('mode-base-menu-btn').addEventListener('click', () => {
@@ -1120,6 +1155,7 @@
 
         micReconnectBtn.addEventListener('click', () => {
             if (!currentMode || isCorrect) return;
+            if (currentMode === 'clementine' && !clementineLesson.canListen()) return;
             listenRequest++;
             isListening = false;
             stopMicSystem();
@@ -1131,6 +1167,7 @@
             if (!currentMode) return;
             pauseListening('화면으로 돌아왔어요. 소리 듣기 시작을 다시 눌러주세요.');
             stopMicSystem();
+            if (currentMode === 'clementine') clementineLesson.suspend();
         }
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) releaseHiddenInput();
@@ -1386,6 +1423,11 @@
                 }
 
                 let pitch = autoCorrelate(buffer, audioContext.sampleRate);
+                if (currentMode === 'clementine') {
+                    clementineLesson.acceptPitch(pitch, rms, now);
+                    if (audioContext) animationFrame = requestAnimationFrame(updatePitch);
+                    return;
+                }
                 
                 if (pitch !== -1) {
                     debugFreq.innerText = `인식된 Hz: ${pitch.toFixed(1)}`;
@@ -1406,6 +1448,25 @@
             }
             animationFrame = requestAnimationFrame(updatePitch);
         }
+        const clementineLesson = window.Clementine ? window.Clementine.createLesson({
+            selectNotes(notes) { activeData = notes; currentIndex = 0; },
+            prepareTarget(index, continuing) {
+                currentIndex = index;
+                prepareNote();
+                if (continuing && hasLiveInput()) {
+                    isListening = true;
+                    startListenBtn.style.display = 'none';
+                    characterImg.src = 'shinbi_2.png';
+                }
+            },
+            stopInput() {
+                cancelAdvance(); listenRequest++; isListening = false; isCorrect = false;
+                stopMicSystem();
+            },
+            feedback: setStatus,
+            isListening: () => isListening,
+            sensitivity: () => inputSensitivity
+        }) : null;
     </script>
 </body>
 </html>
