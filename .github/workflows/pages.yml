@@ -21,6 +21,8 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      PAGES_ARTIFACT_NAME: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Check out the site
         uses: actions/checkout@v4
@@ -29,9 +31,43 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload site files
+        id: upload
         uses: actions/upload-pages-artifact@v4
         with:
+          name: ${{ env.PAGES_ARTIFACT_NAME }}
           path: .
+      - name: Wait for uploaded artifact metadata
+        timeout-minutes: 3
+        env:
+          PAGES_ARTIFACT_ID: ${{ steps.upload.outputs.artifact_id }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import time
+          from urllib.request import Request, urlopen
+
+          # This public repository needs no token or additional permissions for metadata reads.
+          url = ('https://api.github.com/repos/' + os.environ['GITHUB_REPOSITORY'] +
+                 '/actions/runs/' + os.environ['GITHUB_RUN_ID'] + '/artifacts?per_page=100')
+          expected_id = os.environ['PAGES_ARTIFACT_ID']
+          expected_name = os.environ['PAGES_ARTIFACT_NAME']
+          for attempt in range(12):
+              try:
+                  request = Request(url, headers={'Accept': 'application/vnd.github+json'})
+                  with urlopen(request, timeout=10) as response:
+                      artifacts = json.load(response)['artifacts']
+                  if any(str(a['id']) == expected_id and a['name'] == expected_name for a in artifacts):
+                      print('Uploaded artifact metadata confirmed: ' + expected_name)
+                      break
+              except (OSError, ValueError) as error:
+                  print('Artifact metadata is not ready: ' + str(error))
+              time.sleep(5)
+          else:
+              raise SystemExit('Uploaded artifact did not become visible before deployment')
+          PY
       - name: Deploy the site
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: ${{ env.PAGES_ARTIFACT_NAME }}
