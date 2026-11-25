@@ -49,7 +49,10 @@
         return { first, last, events, notes: events.filter(n => !n.rest), beats: beat };
     });
 
-    function measureSVG(events, number, target, done, demo) {
+    const defaultSong = {id:'clementine',title:'클레멘타인',meter:3,tempo:88,key:'G',sections,
+        attribution:'제공 악보의 위 성부 · 편곡 WoojeongPark (박우정)'};
+
+    function measureSVG(events, number, target, done, demo, song) {
         const hasPickup = events.some(n => n.pickup);
         const label = hasPickup ? `시작음 + ${number}마디` : `${number}마디`;
         const positions = events.map((n, i) => 103 + i * (232 / Math.max(events.length, 3)));
@@ -57,7 +60,7 @@
         svg += `<text x="10" y="18" class="bar-label">${label}</text>`;
         for (let i = 0; i < 5; i++) svg += `<path d="M12 ${40 + i * 10}H348" class="staff-line"/>`;
         for (let i = 0; i < 6; i++) svg += `<path d="M55 ${112 + i * 10}H348" class="tab-line"/>`;
-        svg += '<text x="14" y="79" class="clef">𝄞</text><text x="51" y="49" class="key-sharp">♯</text><text x="73" y="55" class="time-signature">3</text><text x="73" y="76" class="time-signature">4</text><text x="16" y="137" class="tab-label">TAB</text>';
+        svg += `<text x="14" y="79" class="clef">𝄞</text>${song.key === 'G' ? '<text x="51" y="49" class="key-sharp">♯</text>' : ''}<text x="73" y="55" class="time-signature">${song.meter}</text><text x="73" y="76" class="time-signature">4</text><text x="16" y="137" class="tab-label">TAB</text>`;
         if (hasPickup) {
             const firstFull = events.findIndex(n => !n.pickup);
             const barX = (positions[firstFull - 1] + positions[firstFull]) / 2;
@@ -68,13 +71,23 @@
             const state = !n.rest && n.index === target ? 'current' : !demo && !n.rest && n.index < done ? 'done' : '';
             svg += `<g class="score-note ${state}">`;
             if (state === 'current') svg += `<rect x="${x - 16}" y="29" width="34" height="142" rx="10" class="note-highlight"/>`;
-            if (n.rest) svg += `<text x="${x - 6}" y="77" class="rest-symbol">𝄽</text>`;
+            if (n.rest) svg += `<text x="${x - 6}" y="77" class="rest-symbol">${n.beats === .5 ? '𝄾' : '𝄽'}</text>`;
             else {
-                svg += `<ellipse cx="${x}" cy="${y}" rx="6.5" ry="4.3" transform="rotate(-18 ${x} ${y})" class="note-head ${n.beats >= 2 ? 'half-note' : ''}"/><path d="M${x + 6} ${y}V30" class="note-stem"/>`;
-                if (n.beats === .75) svg += `<circle cx="${x + 13}" cy="${y - (n.step % 2 === 0 ? 5 : 0)}" r="2" class="note-dot"/>`;
-                if (n.beats === .75 && events[i + 1]?.beats === .25) {
+                if (n.step <= -2) for (let ledger = -2; ledger >= n.step; ledger -= 2)
+                    svg += `<path d="M${x - 11} ${80 - ledger * 5}H${x + 11}" class="staff-line ledger-line"/>`;
+                if (n.accidental) svg += `<text x="${x - 21}" y="${y + 7}" class="note-accidental">${n.accidental}</text>`;
+                const whole = n.beats >= 4;
+                svg += `<ellipse cx="${x}" cy="${y}" rx="${whole ? 8 : 6.5}" ry="4.3" transform="rotate(${whole ? 0 : -18} ${x} ${y})" class="note-head ${whole ? 'whole-note' : n.beats >= 2 ? 'half-note' : ''}"/>`;
+                if (!whole) svg += `<path d="M${x + 6} ${y}V30" class="note-stem"/>`;
+                if ([.75,1.5,3].includes(n.beats)) svg += `<circle cx="${x + 13}" cy="${y - (n.step % 2 === 0 ? 5 : 0)}" r="2" class="note-dot"/>`;
+                const canBeam = (a,b) => a && b && !a.rest && !b.rest && a.beats < 1 && b.beats < 1 &&
+                    Math.floor(a.measureBeat ?? a.beat) === Math.floor(b.measureBeat ?? b.beat);
+                const startsBeam = canBeam(n,events[i + 1]), endsBeam = canBeam(events[i - 1],n);
+                if (startsBeam) {
                     const end = positions[i + 1] + 6;
-                    svg += `<path d="M${x + 6} 30H${end}M${end - 13} 36H${end}" class="note-beam"/>`;
+                    svg += `<path d="M${x + 6} 30H${end}${events[i+1].beats === .25 ? `M${end - 13} 36H${end}` : ''}" class="note-beam"/>`;
+                } else if (n.beats < 1 && !endsBeam) {
+                    svg += `<path d="M${x+6} 30q15 7 6 20q5-11-6-13" class="note-flag"/>`;
                 }
                 const tabY = 112 + (n.string - 1) * 10;
                 svg += `<rect x="${x - 9}" y="${tabY - 8}" width="19" height="16" class="tab-mask"/><text x="${x}" y="${tabY + 5}" class="tab-number">${n.fret}</text>`;
@@ -120,11 +133,14 @@
 
     function createLesson(hooks) {
         const el = id => document.getElementById(id);
+        let song = defaultSong, sections = song.sections;
         let sectionIndex = 0, noteIndex = 0, phase = 'idle', heard = false;
         let generation = 0, context = null, sources = [], frame = null, resumeTimer = null;
         let stableSince = null, quietSince = null, previousFreq = null, fresh = true, scrollMeasure = null;
         let scorePage = 0, displayedIndex = 0, displayedDemo = false, displayedRest = false;
-        const completed = new Set();
+        const songProgress = new Map();
+        let completed = new Set();
+        songProgress.set(song.id, completed);
         const section = () => sections[sectionIndex];
         function clearGate() { stableSince = quietSince = previousFreq = null; fresh = true; }
         function cancelAudio() {
@@ -152,19 +168,20 @@
             const current = s.notes[target];
             if (follow && current) scorePage = current.measure < s.first + 2 ? 0 : 1;
             displayedIndex = target; displayedDemo = demo; displayedRest = rest;
-            el('clem-range').innerText = `${s.first}–${s.last}마디 · 시작음 포함 · 3/4박자 · ♩ = 88`;
+            el('clem-range').innerText = `${s.first}–${s.last}마디${s.events.some(n=>n.pickup) ? ' · 시작음 포함' : ''} · ${song.meter}/4박자 · ♩ = ${song.tempo}`;
             el('clem-counter').innerText = phase === 'complete' ? '구간 완료!' : demo ? (target < 0 ? '시범 듣는 중' : `시범 ${target + 1} / ${s.notes.length}`) : `음 ${Math.min(noteIndex + 1, s.notes.length)} / ${s.notes.length}`;
             for (let page = 0; page < 2; page++) {
                 const button = el(`clem-page-${page}`), first = s.first + page * 2;
                 button.innerText = `${first}–${first + 1}마디 보기`;
                 button.setAttribute('aria-pressed', String(page === scorePage));
                 button.className = `clem-page${page === scorePage ? ' selected' : ''}`;
+                button.hidden = first > s.last; button.disabled = first > s.last;
             }
-            el('clementine-score').innerHTML = [s.first + scorePage * 2, s.first + scorePage * 2 + 1].map(m => {
+            el('clementine-score').innerHTML = [s.first + scorePage * 2, s.first + scorePage * 2 + 1].filter(m=>m<=s.last).map(m => {
                 const notes = s.events.filter(n => n.measure === m);
-                return `<div id="clem-measure-${m}" class="measure-card">${measureSVG(notes, m, target, noteIndex, demo)}</div>`;
+                return `<div id="clem-measure-${m}" class="measure-card">${measureSVG(notes, m, target, noteIndex, demo,song)}</div>`;
             }).join('');
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < sections.length; i++) {
                 el(`clem-part-${i}`).className = `clem-part${i === sectionIndex ? ' selected' : ''}${completed.has(i) ? ' completed' : ''}`;
                 el(`clem-part-${i}`).setAttribute('aria-pressed', String(i === sectionIndex));
                 el(`clem-part-${i}`).innerText = `${completed.has(i) ? '✓ ' : ''}${i + 1}구간`;
@@ -174,7 +191,8 @@
             el('clem-stop-btn').hidden = phase !== 'demo';
             el('clem-reset-btn').hidden = phase === 'demo' || !heard;
             el('clem-next-btn').hidden = phase !== 'complete';
-            el('clem-next-btn').innerText = completed.size === 4 ? '처음부터 다시' : '다음 4마디 →';
+            el('clem-next-btn').innerText = completed.size === sections.length ? '처음부터 다시' : '다음 구간 →';
+            el('clem-attribution').innerText = song.attribution;
             el('clem-target').innerText = phase === 'complete' ? '참 잘했어요! 🎉' : current ?
                 `${current.name} · ${current.string}번줄 ${current.fret === 0 ? '개방현 (0프렛)' : `${current.fret}프렛`}` : '';
             el('clem-neck').innerHTML = neckSVG(current);
@@ -190,20 +208,21 @@
             }
         }
         function decorateTarget() {
-            el('progress-tag').innerText = `구간 ${sectionIndex + 1} / 4`;
-            el('note-display').innerText = '클레멘타인';
+            el('progress-tag').innerText = `구간 ${sectionIndex + 1} / ${sections.length}`;
+            el('note-display').innerText = song.title;
+            el('clementine-panel').setAttribute('aria-label',`${song.title} 멜로디 연습`);
             el('start-listen-btn').disabled = !canListen();
             el('start-listen-btn').style.display = phase === 'complete' ? 'none' : 'block';
             el('start-listen-btn').innerText = '🎧 따라 치기 시작';
             el('mic-reconnect-btn').disabled = !canListen();
             if (phase === 'complete') {
-                hooks.feedback(completed.size === 4 ? '클레멘타인 끝까지 완성했어요! 🎉' : '네 마디를 모두 연주했어요! 🎉', 'status-success');
+                hooks.feedback(completed.size === sections.length ? `${song.title} 끝까지 완성했어요! 🎉` : '이 구간을 모두 연주했어요! 🎉', 'status-success');
             } else hooks.feedback(phase === 'idle' ? '먼저 시범 듣기를 눌러 멜로디를 들어보세요 🎵' : phase === 'demo' ?
                 '기타 멜로디를 듣고 있어요 🎵' : '박자 걱정 없이, 강조된 음을 차례로 연주해요 🎸', 'status-wait');
             render();
         }
         function selectSection(index) {
-            if (!Number.isInteger(index) || index < 0 || index > 3) return;
+            if (!Number.isInteger(index) || index < 0 || index >= sections.length) return;
             cancelAudio(); hooks.stopInput();
             sectionIndex = index; noteIndex = 0; scorePage = 0; phase = 'idle'; heard = false; scrollMeasure = null;
             clearGate(); hooks.selectNotes(section().notes); hooks.prepareTarget(0, false);
@@ -236,7 +255,7 @@
                 if (token !== generation || document.hidden) return false;
                 resumeTimer = null;
                 if (ctx.state !== 'running') throw new Error('audio-suspended');
-                const s = section(), seconds = 60 / 88;
+                const s = section(), seconds = 60 / song.tempo;
                 const cache = new Map();
                 const buffers = s.notes.map(n => {
                     const key = `${n.pitch}:${n.beats}`;
@@ -300,8 +319,8 @@
             if (noteIndex === section().notes.length) {
                 phase = 'complete'; completed.add(sectionIndex); hooks.stopInput(); render(-1);
                 el('start-listen-btn').style.display = 'none'; el('mic-reconnect-btn').disabled = true;
-                hooks.feedback(completed.size === 4 ? '클레멘타인 끝까지 완성했어요! 🎉' : '네 마디를 모두 연주했어요! 🎉', 'status-success');
-                el('clem-feedback').innerText = completed.size === 4 ? '다른 구간을 골라 다시 연습할 수도 있어요.' : '다시 연습하거나 다음 4마디로 넘어가세요.';
+                hooks.feedback(completed.size === sections.length ? `${song.title} 끝까지 완성했어요! 🎉` : '이 구간을 모두 연주했어요! 🎉', 'status-success');
+                el('clem-feedback').innerText = completed.size === sections.length ? '다른 구간을 골라 다시 연습할 수도 있어요.' : '다시 연습하거나 다음 구간으로 넘어가세요.';
             } else {
                 hooks.prepareTarget(noteIndex, true);
                 el('clem-feedback').innerText = section().notes[noteIndex].freq === previousFreq ?
@@ -312,21 +331,29 @@
             cancelAudio(); hooks.stopInput(); noteIndex = 0; clearGate(); phase = heard ? 'ready' : 'idle';
             hooks.prepareTarget(0, false); el('clem-feedback').innerText = '';
         }
-        for (let i = 0; i < 4; i++) el(`clem-part-${i}`).addEventListener('click', () => selectSection(i));
+        function enter(nextSong = defaultSong) {
+            cancelAudio(); song = nextSong; sections = song.sections;
+            if (!songProgress.has(song.id)) songProgress.set(song.id, new Set());
+            completed = songProgress.get(song.id);
+            el('clem-parts').innerHTML = sections.map((_,i)=>`<button id="clem-part-${i}" class="clem-part" type="button">${i+1}구간</button>`).join('');
+            for (let i = 0; i < sections.length; i++) el(`clem-part-${i}`).addEventListener('click', () => selectSection(i));
+            selectSection(0);
+        }
         for (let page = 0; page < 2; page++) el(`clem-page-${page}`).addEventListener('click', () => {
+            if (section().first + page * 2 > section().last) return;
             scorePage = page; scrollMeasure = null; render(displayedIndex, displayedDemo, false, displayedRest); focusScore(null);
         });
         el('clem-demo-btn').addEventListener('click', playDemo);
         el('clem-stop-btn').addEventListener('click', () => { suspend(); el('clem-feedback').innerText = '다시 들으려면 시범 듣기를 눌러주세요.'; });
         el('clem-reset-btn').addEventListener('click', repeat);
         el('clem-next-btn').addEventListener('click', () => {
-            if (completed.size === 4) { completed.clear(); selectSection(0); return; }
-            for (let step = 1; step <= 4; step++) {
-                const next = (sectionIndex + step) % 4;
+            if (completed.size === sections.length) { completed.clear(); selectSection(0); return; }
+            for (let step = 1; step <= sections.length; step++) {
+                const next = (sectionIndex + step) % sections.length;
                 if (!completed.has(next)) { selectSection(next); return; }
             }
         });
-        return { enter: () => selectSection(0), selectSection, playDemo, repeat, canListen, listeningStarted,
+        return { enter, selectSection, playDemo, repeat, canListen, listeningStarted,
             decorateTarget, acceptPitch, stop: cancelAudio, suspend,
             get phase() { return phase; }, get sectionIndex() { return sectionIndex; } };
     }

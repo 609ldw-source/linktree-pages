@@ -372,12 +372,18 @@
         <div class="mode-btn-group" id="main-menu">
             <button class="mode-btn" id="mode-scale-btn">도레미파솔라시도 연습</button>
             <button class="mode-btn btn-green" id="mode-open-btn">개방현 (6줄) 연습</button>
-            <button class="mode-btn btn-yellow" id="mode-song-btn">작은별 연주하기 ⭐️</button>
-            <button class="mode-btn btn-green" id="mode-clementine-btn">🎵 클레멘타인 · 4마디씩 따라 치기</button>
+            <button class="mode-btn btn-yellow" id="mode-songs-menu-btn">📁 동요</button>
             <button class="mode-btn btn-purple" id="mode-base-menu-btn">🎸 베이스 음 (5, 6번줄) 외우기</button>
             <button class="mode-btn btn-pink" id="mode-chord-btn">🎸 코드 스트로크 연습 (랜덤 6단계)</button>
         </div>
 
+        <div class="mode-btn-group" id="songs-sub-menu" style="display: none;">
+            <h2 class="songs-folder-title">🎵 동요</h2>
+            <button class="mode-btn btn-yellow" id="mode-song-btn">작은별 연주하기 ⭐️</button>
+            <button class="mode-btn btn-green" id="mode-clementine-btn">🎵 클레멘타인 · 4마디씩 따라 치기</button>
+            <button class="mode-btn btn-pink" id="mode-doremi-btn">🎶 도레미송 · 4마디씩 따라 치기</button>
+            <button class="mode-btn btn-gray" id="songs-sub-back-btn">⬅️ 이전으로</button>
+        </div>
         <!-- 베이스 음 서브 메뉴 -->
         <div class="mode-btn-group" id="base-sub-menu" style="display: none;">
             <button class="mode-btn btn-purple" id="mode-base-c-btn">🎹 C 음계 (흰건반) 외우기 (10문제)</button>
@@ -425,7 +431,7 @@
 
             <section id="clementine-panel" aria-label="클레멘타인 멜로디 연습">
                 <div class="clem-heading"><p id="clem-range"></p><span id="clem-counter"></span></div>
-                <div class="clem-parts" aria-label="연습 구간 선택">
+                <div id="clem-parts" class="clem-parts" aria-label="연습 구간 선택">
                     <button id="clem-part-0" class="clem-part" type="button">1구간</button>
                     <button id="clem-part-1" class="clem-part" type="button">2구간</button>
                     <button id="clem-part-2" class="clem-part" type="button">3구간</button>
@@ -434,7 +440,7 @@
                 <h2 id="clem-target" aria-live="polite"></h2>
                 <div id="clementine-score"></div>
                 <p id="clem-feedback" role="status" aria-live="polite"></p>
-                <p class="clem-caption">위 멜로디만 연주해요 · 표준 튜닝 · 카포 없이<br>시범은 원래 리듬, 따라 치기는 시간 제한 없이!<br>제공 악보의 위 성부 · 편곡 WoojeongPark (박우정)</p>
+                <p class="clem-caption">위 멜로디만 연주해요 · 표준 튜닝 · 카포 없이<br>시범은 원래 리듬, 따라 치기는 시간 제한 없이!<br><span id="clem-attribution"></span></p>
             </section>
             </div>
             <div id="practice-controls">
@@ -471,6 +477,7 @@
     <div id="debug-freq">인식된 Hz: 0.0</div>
 
     <script src="clementine.js"></script>
+    <script src="doremi.js"></script>
     <script>
         // --- 1. 베이스 연습 전용 X 좌표 (fretboard.jpeg): 0~12프렛 ---
         const bassFretXPositions = [
@@ -661,6 +668,7 @@
         const homeScreen = document.getElementById('home-screen');
         const mainMenu = document.getElementById('main-menu');
         const baseSubMenu = document.getElementById('base-sub-menu');
+        const songsSubMenu = document.getElementById('songs-sub-menu');
         const practiceScreen = document.getElementById('practice-screen');
         const boardImg = document.getElementById('board-img');
         const noteDisplay = document.getElementById('note-display');
@@ -721,6 +729,7 @@
         }
 
         // --- 모드 세팅 ---
+        function isMelodyMode() { return currentMode === 'clementine' || currentMode === 'doremi'; }
         function initMode(mode) {
             if (clementineLesson) clementineLesson.stop();
             cancelAdvance();
@@ -732,17 +741,17 @@
 
             practiceScreen.classList.toggle('bass-mode', mode === 'base-c' || mode === 'base-chromatic');
             practiceScreen.classList.toggle('chord-mode', mode === 'chord');
-            practiceScreen.classList.toggle('clementine-mode', mode === 'clementine');
-            document.getElementById('fretboard-container').style.display = mode === 'chord' || mode === 'clementine' ? 'none' : 'block';
+            practiceScreen.classList.toggle('clementine-mode', isMelodyMode());
+            document.getElementById('fretboard-container').style.display = mode === 'chord' || isMelodyMode() ? 'none' : 'block';
             document.getElementById('chord-panel').style.display = mode === 'chord' ? 'block' : 'none';
-            debugFreq.style.display = mode === 'chord' || mode === 'clementine' ? 'none' : 'block';
+            debugFreq.style.display = mode === 'chord' || isMelodyMode() ? 'none' : 'block';
             retryBtn.innerText = mode === 'chord' ? '🔄 다시 시도하기' : '🔄 같은 음 다시 치기';
 
-            if (mode === 'clementine') {
+            if (isMelodyMode()) {
                 progressTag.style.display = 'block';
                 homeScreen.style.display = 'none';
                 practiceScreen.style.display = 'flex';
-                clementineLesson.enter();
+                clementineLesson.enter(mode === 'doremi' ? window.DoremiSong : undefined);
                 return;
             } else if (mode === 'chord') {
                 activeData = shuffledChordRound();
@@ -788,6 +797,7 @@
             homeScreen.style.display = "flex";
             mainMenu.style.display = "flex";
             baseSubMenu.style.display = "none";
+            songsSubMenu.style.display = 'none';
             isListening = false; 
             clearNightSky();
         }
@@ -807,7 +817,7 @@
                 document.getElementById('chord-detected').innerText = '';
             }
 
-            redDot.style.display = currentMode === 'chord' || currentMode === 'clementine' ? 'none' : 'block';
+            redDot.style.display = currentMode === 'chord' || isMelodyMode() ? 'none' : 'block';
             redDot.style.left = currentNote.x;
             redDot.style.top = currentNote.y;
 
@@ -827,7 +837,7 @@
             micReconnectBtn.disabled = false;
             retryBtn.style.display = "none";
             nextBtn.style.display = "none";
-            if (currentMode === 'clementine') clementineLesson.decorateTarget();
+            if (isMelodyMode()) clementineLesson.decorateTarget();
         }
 
         startListenBtn.addEventListener('click', () => {
@@ -836,7 +846,7 @@
 
         function startAutoListen() {
             if (!currentMode || isCorrect || document.hidden) return Promise.resolve(false);
-            if (currentMode === 'clementine' && !clementineLesson.canListen()) return Promise.resolve(false);
+            if (isMelodyMode() && !clementineLesson.canListen()) return Promise.resolve(false);
             const request = ++listenRequest;
             const version = sessionVersion;
             // This call stays in the button's gesture: resume and getUserMedia
@@ -859,7 +869,7 @@
             characterImg.src = "shinbi_2.png"; 
             setStatus(currentMode === 'song' ? "다음 음을 연주해주세요 🎸" : "기타 소리를 듣고 있어요 🎸", "status-listen");
             startListenBtn.style.display = "none";
-            if (currentMode === 'clementine') clementineLesson.listeningStarted();
+            if (isMelodyMode()) clementineLesson.listeningStarted();
 
             if (currentMode === 'chord') {
                 resetChordAttempt();
@@ -980,6 +990,13 @@
         document.getElementById('mode-open-btn').addEventListener('click', () => initMode('open'));
         document.getElementById('mode-song-btn').addEventListener('click', () => initMode('song'));
         document.getElementById('mode-clementine-btn').addEventListener('click', () => initMode('clementine'));
+        document.getElementById('mode-doremi-btn').addEventListener('click', () => initMode('doremi'));
+        document.getElementById('mode-songs-menu-btn').addEventListener('click', () => {
+            mainMenu.style.display = 'none'; baseSubMenu.style.display = 'none'; songsSubMenu.style.display = 'flex';
+        });
+        document.getElementById('songs-sub-back-btn').addEventListener('click', () => {
+            songsSubMenu.style.display = 'none'; mainMenu.style.display = 'flex';
+        });
         document.getElementById('mode-chord-btn').addEventListener('click', () => initMode('chord'));
 
         document.getElementById('mode-base-menu-btn').addEventListener('click', () => {
@@ -1163,7 +1180,7 @@
 
         micReconnectBtn.addEventListener('click', () => {
             if (!currentMode || isCorrect) return;
-            if (currentMode === 'clementine' && !clementineLesson.canListen()) return;
+            if (isMelodyMode() && !clementineLesson.canListen()) return;
             listenRequest++;
             isListening = false;
             stopMicSystem();
@@ -1175,7 +1192,7 @@
             if (!currentMode) return;
             pauseListening('화면으로 돌아왔어요. 소리 듣기 시작을 다시 눌러주세요.');
             stopMicSystem();
-            if (currentMode === 'clementine') clementineLesson.suspend();
+            if (isMelodyMode()) clementineLesson.suspend();
         }
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) releaseHiddenInput();
@@ -1431,7 +1448,7 @@
                 }
 
                 let pitch = autoCorrelate(buffer, audioContext.sampleRate);
-                if (currentMode === 'clementine') {
+                if (isMelodyMode()) {
                     clementineLesson.acceptPitch(pitch, rms, now);
                     if (audioContext) animationFrame = requestAnimationFrame(updatePitch);
                     return;

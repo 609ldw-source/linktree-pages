@@ -3,7 +3,8 @@
 .clem-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
 #clem-range { margin:4px 0; font-size:.95rem; }
 #clem-counter { white-space:nowrap; border-radius:18px; background:#ede9fe; padding:6px 12px; }
-.clem-parts { display:flex; gap:6px; margin:8px 0; }
+.clem-parts { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin:8px 0; }
+.songs-folder-title { margin:0 0 6px; text-align:center; color:#4c1d95; font-size:1.8rem; }
 .clem-part { flex:1; min-height:38px; border:0; border-radius:18px; font:inherit; background:#e2e8f0; color:#475569; cursor:pointer; }
 .clem-part.selected { background:#7c3aed; color:white; }
 .clem-part.completed:not(.selected) { background:#d1fae5; color:#065f46; }
@@ -30,16 +31,19 @@
 .time-signature { font-size:23px; font-weight:bold; text-anchor:middle; fill:#334155; }
 .tab-label { font:bold 15px sans-serif; fill:#475569; }
 .note-head,.note-dot { fill:#334155; }
-.half-note { fill:white; stroke:#334155; stroke-width:1.8; }
+.half-note,.whole-note { fill:white; stroke:#334155; stroke-width:1.8; }
+.note-accidental { fill:#334155; font-size:22px; }
+.note-flag { fill:#334155; }
 .note-stem { fill:none; stroke:#334155; stroke-width:1.6; }
 .note-beam { fill:none; stroke:#334155; stroke-width:3.7; }
 .tab-mask { fill:white; }
 .tab-number { font:bold 18px sans-serif; text-anchor:middle; fill:#334155; }
 .note-highlight { fill:#ede9fe; }
 .score-note.current .note-head,.score-note.current .note-dot,.score-note.current .tab-number { fill:#7c3aed; }
-.score-note.current .half-note { fill:white; stroke:#7c3aed; }
+.score-note.current .half-note,.score-note.current .whole-note { fill:white; stroke:#7c3aed; }
 .score-note.done .note-head,.score-note.done .note-dot,.score-note.done .tab-number { fill:#059669; }
-.score-note.done .half-note { fill:white; stroke:#059669; }
+.score-note.done .half-note,.score-note.done .whole-note { fill:white; stroke:#059669; }
+.clem-page[hidden] { display:none; }
 .rest-symbol { font-size:44px; fill:#475569; }
 .clem-caption { color:#64748b; font-size:.8rem; line-height:1.5; }
 #clem-feedback { min-height:1.3em; font-size:.9rem; margin:5px 0; }
