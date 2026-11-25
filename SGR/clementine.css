@@ -7,11 +7,21 @@
 .clem-part { flex:1; min-height:38px; border:0; border-radius:18px; font:inherit; background:#e2e8f0; color:#475569; cursor:pointer; }
 .clem-part.selected { background:#7c3aed; color:white; }
 .clem-part.completed:not(.selected) { background:#d1fae5; color:#065f46; }
-#clem-target { margin:8px 0; font-size:1.2rem; }
+#clem-target { display:none; }
+.clem-pages { display:flex; gap:6px; margin:6px 0 10px; }
+.clem-page { flex:1; font:inherit; font-size:.9rem; padding:6px; min-height:34px; border:1px solid #c4b5fd; border-radius:12px; color:#5b21b6; background:#ffffffa8; cursor:pointer; }
+.clem-page.selected { background:#ede9fe; border-color:#8b5cf6; }
 #clementine-score { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
 .measure-card { background:#fff; border-radius:15px; box-shadow:0 3px 10px #4c1d9512; overflow:hidden; }
 .measure-card svg { display:block; width:100%; height:auto; font-family:Georgia,'Times New Roman',serif; }
-.pickup-card { max-width:360px; }
+#clem-neck-panel { display:none; width:100%; max-width:440px; margin:8px 0; }
+.clementine-mode #clem-neck-panel { display:block; }
+#clem-neck svg { display:block; width:100%; height:auto; }
+.neck-label { font:16px 'Jua',sans-serif; fill:#4c1d95; }
+.neck-position { fill:#f43f5e; stroke:white; stroke-width:2.5; }
+.neck-position.open-position { fill:white; stroke:#f43f5e; }
+.neck-open-zero { font:bold 12px sans-serif; fill:#be123c; }
+#clem-neck-caption { font-size:1rem; margin:4px 0 0; text-align:center; color:#4c1d95; min-height:1.4em; }
 .staff-line,.tab-line { fill:none; stroke:#64748b; stroke-width:1; }
 .tab-line { stroke:#94a3b8; }
 .bar-label { font:15px 'Jua',sans-serif; fill:#64748b; }
@@ -46,10 +56,14 @@
     .clementine-mode #character-area { display:none; }
     .clementine-mode #note-display { font-size:1.5rem; }
     .clementine-mode #progress-tag { font-size:.9rem; margin:3px; padding:4px 12px; }
+    .clementine-mode #progress-tag { position:absolute; top:8px; right:8px; }
+    #clem-neck-panel { max-width:440px; margin:4px 0 0; }
+    #clem-neck-caption { font-size:.85rem; }
     #clem-range { font-size:.8rem; }
     #clem-counter { font-size:.85rem; padding:4px 8px; }
     #clem-target { font-size:1.05rem; }
     #clem-controls button { min-height:38px; font-size:.85rem; }
 }
-@media(max-width:600px) { #clementine-score { grid-template-columns:minmax(0,1fr); gap:8px; } .pickup-card { max-width:none; } }
-@media(max-height:480px) and (orientation:landscape) { .clementine-mode #left-panel { flex:0 0 20%; padding-top:42px; } .clementine-mode #note-display { font-size:1.2rem; } #clem-controls button { min-height:34px; padding:5px 8px; } }
+@media(max-width:600px) { #clementine-score { grid-template-columns:minmax(0,1fr); gap:6px; } .clem-heading { margin-bottom:4px; } .clem-parts { margin:4px 0; } .clem-pages { margin:4px 0 6px; } #clem-neck-panel { max-width:320px; } }
+@media(max-height:650px) and (orientation:portrait) { #clem-neck-panel { max-width:250px; } .clementine-mode #note-display { font-size:1.15rem; } #clem-neck-caption { font-size:.75rem; } .clem-part { min-height:32px; } .clem-page { min-height:30px; padding:3px; } }
+@media(max-height:480px) and (orientation:landscape) { .clementine-mode #left-panel { flex:0 0 30%; padding-top:42px; } .clementine-mode #note-display { font-size:1.2rem; } #clem-controls button { min-height:34px; padding:5px 8px; } #clem-neck-caption { font-size:.75rem; } }

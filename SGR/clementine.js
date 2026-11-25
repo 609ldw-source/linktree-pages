@@ -29,26 +29,40 @@
         const first = section * 4 + 1, last = first + 3;
         let beat = 0, index = 0;
         const events = [];
-        for (let measure = section === 0 ? 0 : first; measure <= last; measure++) {
-            for (const [pitch, beats] of raw[measure]) {
+        const append = (sourceMeasure, sourceIndex, pickup = false) => {
+                const [pitch, beats] = raw[sourceMeasure][sourceIndex];
+                const measure = pickup ? first : sourceMeasure;
                 const p = pitches[pitch];
-                events.push(p ? { pitch, beats, beat, measure, index: index++, name: p[1],
+                events.push(p ? { pitch, beats, beat, measure, pickup, sourceId: `${sourceMeasure}:${sourceIndex}`, index: index++, name: p[1],
                     freq: 440 * 2 ** ((p[0] - 69) / 12), string: p[2], fret: p[3], step: p[4] } :
                     { rest: true, beats, beat, measure });
                 beat += beats;
-            }
+        };
+        const pickupMeasure = first - 1;
+        for (let i = raw[pickupMeasure].length - 2; i < raw[pickupMeasure].length; i++) append(pickupMeasure, i, true);
+        for (let measure = first; measure <= last; measure++) {
+            raw[measure].forEach((_, i) => {
+                // The last beat belongs to the next phrase's pickup. Keep the final written rest.
+                if (measure !== last || i === 0 || section === 3) append(measure, i);
+            });
         }
         return { first, last, events, notes: events.filter(n => !n.rest), beats: beat };
     });
 
     function measureSVG(events, number, target, done, demo) {
-        const label = number === 0 ? '시작음' : `${number}마디`;
+        const hasPickup = events.some(n => n.pickup);
+        const label = hasPickup ? `시작음 + ${number}마디` : `${number}마디`;
         const positions = events.map((n, i) => 103 + i * (232 / Math.max(events.length, 3)));
-        let svg = `<svg viewBox="0 0 360 190" role="img" aria-label="${label} 멜로디 오선보와 TAB"><title>${label}: ${events.map(n => n.rest ? '쉼표' : `${n.name}, ${n.string}번줄 ${n.fret}프렛`).join(', ')}</title>`;
+        let svg = `<svg viewBox="0 0 360 170" role="img" aria-label="${label} 멜로디 오선보와 TAB"><title>${label}: ${events.map(n => n.rest ? '쉼표' : `${n.name}, ${n.string}번줄 ${n.fret}프렛`).join(', ')}</title>`;
         svg += `<text x="10" y="18" class="bar-label">${label}</text>`;
         for (let i = 0; i < 5; i++) svg += `<path d="M12 ${40 + i * 10}H348" class="staff-line"/>`;
         for (let i = 0; i < 6; i++) svg += `<path d="M55 ${112 + i * 10}H348" class="tab-line"/>`;
         svg += '<text x="14" y="79" class="clef">𝄞</text><text x="51" y="49" class="key-sharp">♯</text><text x="73" y="55" class="time-signature">3</text><text x="73" y="76" class="time-signature">4</text><text x="16" y="137" class="tab-label">TAB</text>';
+        if (hasPickup) {
+            const firstFull = events.findIndex(n => !n.pickup);
+            const barX = (positions[firstFull - 1] + positions[firstFull]) / 2;
+            svg += `<path d="M${barX} 40V80M${barX} 112V162" class="staff-line pickup-boundary"/>`;
+        }
         events.forEach((n, i) => {
             const x = positions[i], y = n.rest ? 60 : 80 - n.step * 5;
             const state = !n.rest && n.index === target ? 'current' : !demo && !n.rest && n.index < done ? 'done' : '';
@@ -70,6 +84,27 @@
         return svg + '<path d="M348 40V80M348 112V162" class="staff-line"/></svg>';
     }
 
+    function neckSVG(note) {
+        const position = note ? ` data-current-string="${note.string}" data-current-fret="${note.fret}"` : '';
+        let svg = `<svg viewBox="0 0 440 140" role="img" aria-label="${note ? `${note.name}, ${note.string}번줄 ${note.fret}프렛` : '기타 넥'}"${position}><title>1번줄이 위, 6번줄이 아래인 기타 넥. 0은 개방현입니다.</title>`;
+        svg += '<rect x="85" y="12" width="336" height="103" rx="5" fill="#774e36"/><path d="M85 17H421M85 110H421" stroke="#a57b52" stroke-width="2"/>';
+        for (let fret = 1; fret <= 4; fret++) {
+            const x = 85 + fret * 80;
+            svg += `<path d="M${x} 12V115" stroke="#d6d3d1" stroke-width="4"/><text x="${x - 40}" y="133" text-anchor="middle" class="neck-label">${fret}</text>`;
+        }
+        svg += '<rect x="81" y="12" width="9" height="103" rx="2" fill="#fff4d6"/>';
+        for (let string = 1; string <= 6; string++) {
+            const y = 25 + (string - 1) * 15;
+            svg += `<text x="22" y="${y + 5}" text-anchor="middle" class="neck-label">${string}</text><path d="M48 ${y}H421" stroke="${note?.string === string ? '#fb7185' : '#e7e5e4'}" stroke-width="${note?.string === string ? 2.4 : .6 + string * .22}"/>`;
+        }
+        if (note) {
+            const x = note.fret === 0 ? 64 : 85 + (note.fret - .5) * 80, y = 25 + (note.string - 1) * 15;
+            svg += `<circle cx="${x}" cy="${y}" r="9" class="neck-position${note.fret === 0 ? ' open-position' : ''}"/>`;
+            if (note.fret === 0) svg += `<text x="${x}" y="${y + 4}" text-anchor="middle" class="neck-open-zero">0</text>`;
+        }
+        return svg + '</svg>';
+    }
+
     function guitarBuffer(context, frequency, duration) {
         const length = Math.ceil(Math.min(duration * .94, 2.4) * context.sampleRate);
         const buffer = context.createBuffer(1, length, context.sampleRate), samples = buffer.getChannelData(0);
@@ -88,6 +123,7 @@
         let sectionIndex = 0, noteIndex = 0, phase = 'idle', heard = false;
         let generation = 0, context = null, sources = [], frame = null, resumeTimer = null;
         let stableSince = null, quietSince = null, previousFreq = null, fresh = true, scrollMeasure = null;
+        let scorePage = 0, displayedIndex = 0, displayedDemo = false, displayedRest = false;
         const completed = new Set();
         const section = () => sections[sectionIndex];
         function clearGate() { stableSince = quietSince = previousFreq = null; fresh = true; }
@@ -101,13 +137,32 @@
             const old = context; context = null;
             if (old && old.state !== 'closed') old.close().catch(() => {});
         }
-        function render(target = noteIndex, demo = false) {
+        function focusScore(current) {
+            const container = el('practice-content'), s = section();
+            const first = el(`clem-measure-${s.first + scorePage * 2}`), last = el(`clem-measure-${s.first + scorePage * 2 + 1}`);
+            if (!container || !first || !first.getBoundingClientRect || !container.getBoundingClientRect) return;
+            let anchor = first;
+            if (current && last?.getBoundingClientRect && last.getBoundingClientRect().bottom - first.getBoundingClientRect().top > container.clientHeight) {
+                anchor = el(`clem-measure-${current.measure}`) || first;
+            }
+            if (anchor.getBoundingClientRect) container.scrollTop += anchor.getBoundingClientRect().top - container.getBoundingClientRect().top;
+        }
+        function render(target = noteIndex, demo = false, follow = true, rest = false) {
             const s = section();
-            el('clem-range').innerText = `${s.first}–${s.last}마디${sectionIndex === 0 ? ' · 시작음 포함' : ''} · 3/4박자 · ♩ = 88`;
-            el('clem-counter').innerText = phase === 'complete' ? '구간 완료!' : `음 ${Math.min(noteIndex + 1, s.notes.length)} / ${s.notes.length}`;
-            el('clementine-score').innerHTML = [...new Set(s.events.map(n => n.measure))].map(m => {
+            const current = s.notes[target];
+            if (follow && current) scorePage = current.measure < s.first + 2 ? 0 : 1;
+            displayedIndex = target; displayedDemo = demo; displayedRest = rest;
+            el('clem-range').innerText = `${s.first}–${s.last}마디 · 시작음 포함 · 3/4박자 · ♩ = 88`;
+            el('clem-counter').innerText = phase === 'complete' ? '구간 완료!' : demo ? (target < 0 ? '시범 듣는 중' : `시범 ${target + 1} / ${s.notes.length}`) : `음 ${Math.min(noteIndex + 1, s.notes.length)} / ${s.notes.length}`;
+            for (let page = 0; page < 2; page++) {
+                const button = el(`clem-page-${page}`), first = s.first + page * 2;
+                button.innerText = `${first}–${first + 1}마디 보기`;
+                button.setAttribute('aria-pressed', String(page === scorePage));
+                button.className = `clem-page${page === scorePage ? ' selected' : ''}`;
+            }
+            el('clementine-score').innerHTML = [s.first + scorePage * 2, s.first + scorePage * 2 + 1].map(m => {
                 const notes = s.events.filter(n => n.measure === m);
-                return `<div id="clem-measure-${m}" class="measure-card${m === 0 ? ' pickup-card' : ''}">${measureSVG(notes, m, target, noteIndex, demo)}</div>`;
+                return `<div id="clem-measure-${m}" class="measure-card">${measureSVG(notes, m, target, noteIndex, demo)}</div>`;
             }).join('');
             for (let i = 0; i < 4; i++) {
                 el(`clem-part-${i}`).className = `clem-part${i === sectionIndex ? ' selected' : ''}${completed.has(i) ? ' completed' : ''}`;
@@ -120,16 +175,17 @@
             el('clem-reset-btn').hidden = phase === 'demo' || !heard;
             el('clem-next-btn').hidden = phase !== 'complete';
             el('clem-next-btn').innerText = completed.size === 4 ? '처음부터 다시' : '다음 4마디 →';
-            const current = s.notes[target];
             el('clem-target').innerText = phase === 'complete' ? '참 잘했어요! 🎉' : current ?
                 `${current.name} · ${current.string}번줄 ${current.fret === 0 ? '개방현 (0프렛)' : `${current.fret}프렛`}` : '';
-            if (current && current.measure !== scrollMeasure) {
-                scrollMeasure = current.measure;
-                const card = el(`clem-measure-${current.measure}`), container = el('practice-content');
+            el('clem-neck').innerHTML = neckSVG(current);
+            el('clem-neck-caption').innerText = phase === 'complete' ? '구간 완료! 참 잘했어요 🎉' : current ?
+                `${current.name} · ${current.string}번줄 ${current.fret === 0 ? '개방현 (누르지 않아요)' : `${current.fret}프렛`}` : rest ? '쉼표 · 잠깐 쉬어요' : '멜로디를 듣고 있어요 🎵';
+            if (follow && current && current.measure !== scrollMeasure) {
+                const card = el(`clem-measure-${current.measure}`);
                 // Scroll only the score area; never move the fixed microphone controls.
-                if (card.getBoundingClientRect && container.getBoundingClientRect) {
-                    const r = card.getBoundingClientRect(), bounds = container.getBoundingClientRect();
-                    if (r.top < bounds.top || r.bottom > bounds.bottom) container.scrollTop += r.top - bounds.top;
+                if (card) {
+                    scrollMeasure = current.measure;
+                    focusScore(current);
                 }
             }
         }
@@ -149,7 +205,7 @@
         function selectSection(index) {
             if (!Number.isInteger(index) || index < 0 || index > 3) return;
             cancelAudio(); hooks.stopInput();
-            sectionIndex = index; noteIndex = 0; phase = 'idle'; heard = false; scrollMeasure = null;
+            sectionIndex = index; noteIndex = 0; scorePage = 0; phase = 'idle'; heard = false; scrollMeasure = null;
             clearGate(); hooks.selectNotes(section().notes); hooks.prepareTarget(0, false);
             el('clem-feedback').innerText = '';
         }
@@ -198,7 +254,7 @@
                         suspend(); el('clem-feedback').innerText = '소리가 잠시 멈췄어요. 시범 듣기를 다시 눌러주세요.';
                     }
                 });
-                let highlighted = -2;
+                let highlighted = -2, highlightedRest = false;
                 const update = () => {
                     if (token !== generation) return;
                     const elapsed = (ctx.currentTime - start) / seconds;
@@ -209,7 +265,10 @@
                     }
                     const event = s.events.find(n => elapsed >= n.beat && elapsed < n.beat + n.beats);
                     const next = event && !event.rest ? event.index : -1;
-                    if (next !== highlighted) { highlighted = next; render(next, true); }
+                    const rest = Boolean(event?.rest);
+                    if (next !== highlighted || rest !== highlightedRest) {
+                        highlighted = next; highlightedRest = rest; render(next, true, true, rest);
+                    }
                     frame = requestAnimationFrame(update);
                 };
                 update(); return true;
@@ -254,6 +313,9 @@
             hooks.prepareTarget(0, false); el('clem-feedback').innerText = '';
         }
         for (let i = 0; i < 4; i++) el(`clem-part-${i}`).addEventListener('click', () => selectSection(i));
+        for (let page = 0; page < 2; page++) el(`clem-page-${page}`).addEventListener('click', () => {
+            scorePage = page; scrollMeasure = null; render(displayedIndex, displayedDemo, false, displayedRest); focusScore(null);
+        });
         el('clem-demo-btn').addEventListener('click', playDemo);
         el('clem-stop-btn').addEventListener('click', () => { suspend(); el('clem-feedback').innerText = '다시 들으려면 시범 듣기를 눌러주세요.'; });
         el('clem-reset-btn').addEventListener('click', repeat);
