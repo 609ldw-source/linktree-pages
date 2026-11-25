@@ -266,11 +266,13 @@
         #mic-reconnect-btn { font: inherit; border: 0; border-radius: 16px; padding: 8px 14px;
             color: #4c1d95; background: #ede9fe; cursor: pointer; }
         #mic-reconnect-btn:disabled { opacity: .5; cursor: default; }
-        .sensitivity-control { display: flex; align-items: center; justify-content: center; gap: 6px;
-            width: 100%; font-size: .9rem; }
-        #mic-sensitivity { font: inherit; border: 1px solid #c4b5fd; border-radius: 10px;
-            padding: 5px 8px; color: #4c1d95; background: #fff; }
-        .sensitivity-hint { color: #64748b; font-size: .8rem; }
+        .sensitivity-control { display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center; column-gap: 8px; width: 100%; font-size: .9rem; }
+        #mic-sensitivity { width: 100%; min-width: 0; height: 36px; margin: 0;
+            accent-color: #7c3aed; cursor: pointer; touch-action: pan-y; direction: ltr; }
+        #mic-sensitivity:focus-visible { outline: 2px solid #7c3aed; outline-offset: 2px; border-radius: 8px; }
+        #mic-sensitivity-value { color: #4c1d95; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .sensitivity-hint { grid-column: 2 / -1; margin-top: -4px; color: #64748b; font-size: .8rem; }
 
         /* --- 코드 연습 패널 스타일 --- */
         #chord-panel { display: none; width: 100%; max-width: 620px; text-align: center; }
@@ -455,14 +457,13 @@
                 <span id="mic-input-status" role="status" aria-live="polite">소리 듣기 시작을 누르면 마이크를 연결해요.</span>
                 <meter id="mic-level" min="0" max="1" value="0" aria-label="마이크 입력 크기"></meter>
                 <button id="mic-reconnect-btn" type="button">🎤 마이크 다시 연결</button>
-                <label class="sensitivity-control" for="mic-sensitivity">마이크 감도
-                    <select id="mic-sensitivity">
-                        <option value="2">보통</option>
-                        <option value="4" selected>높음</option>
-                        <option value="8">아주 높음</option>
-                    </select>
-                    <span class="sensitivity-hint">작게 들리면 ‘아주 높음’</span>
-                </label>
+                <div class="sensitivity-control">
+                    <label for="mic-sensitivity">마이크 감도</label>
+                    <input id="mic-sensitivity" type="range" min="1" max="32" step="1" value="4"
+                        aria-describedby="mic-sensitivity-hint">
+                    <output id="mic-sensitivity-value" for="mic-sensitivity">4 / 32</output>
+                    <span id="mic-sensitivity-hint" class="sensitivity-hint">작게 들리면 오른쪽으로 밀어주세요</span>
+                </div>
             </div>
             
             <div class="btn-group">
@@ -476,7 +477,7 @@
 
     <div id="debug-freq">인식된 Hz: 0.0</div>
 
-    <script src="clementine.js"></script>
+    <script src="clementine.js?v=20261125-mic-slider"></script>
     <script src="doremi.js"></script>
     <script>
         // --- 1. 베이스 연습 전용 X 좌표 (fretboard.jpeg): 0~12프렛 ---
@@ -685,19 +686,28 @@
         const micLevel = document.getElementById('mic-level');
         const micReconnectBtn = document.getElementById('mic-reconnect-btn');
         const micSensitivity = document.getElementById('mic-sensitivity');
-        micSensitivity.value = String(inputSensitivity);
-        micSensitivity.addEventListener('change', () => {
+        const micSensitivityValue = document.getElementById('mic-sensitivity-value');
+        function showSensitivity() {
+            micSensitivity.value = String(inputSensitivity);
+            micSensitivityValue.innerText = `${inputSensitivity} / 32`;
+            micSensitivity.setAttribute('aria-valuetext', `감도 ${inputSensitivity}, 최대 32`);
+        }
+        function updateSensitivity() {
             const value = Number(micSensitivity.value);
-            if (![2,4,8].includes(value)) {
-                micSensitivity.value = String(inputSensitivity);
+            if (!Number.isInteger(value) || value < 1 || value > 32 || value === inputSensitivity) {
+                showSensitivity();
                 return;
             }
             inputSensitivity = value;
+            showSensitivity();
             correctFrames = 0;
             resetChordAttempt();
             if (isListening && currentMode === 'chord')
                 setStatus('줄 울림을 멈추면 주변 소리에 맞춰 다시 준비해요 ✋', 'status-listen');
-        });
+        }
+        showSensitivity();
+        micSensitivity.addEventListener('input', updateSensitivity);
+        micSensitivity.addEventListener('change', updateSensitivity);
         
         const nightOverlay = document.getElementById('night-overlay');
         const starContainer = document.getElementById('star-container');
@@ -1375,7 +1385,7 @@
         const bufferLength = 4096;
         const buffer = new Float32Array(bufferLength);
 
-        function autoCorrelate(buf, sampleRate) {
+        function autoCorrelate(buf, sampleRate, sensitivity = inputSensitivity) {
             let SIZE = buf.length;
             let rms = 0;
 
@@ -1384,7 +1394,7 @@
                 rms += val * val;
             }
             rms = Math.sqrt(rms / SIZE);
-            if (rms < 0.01 / inputSensitivity) return -1;
+            if (rms < 0.01 / sensitivity) return -1;
 
             let r1 = 0, r2 = SIZE - 1, thres = 0.2;
             for (let i = 0; i < SIZE / 2; i++)
@@ -1449,7 +1459,11 @@
 
                 let pitch = autoCorrelate(buffer, audioContext.sampleRate);
                 if (isMelodyMode()) {
-                    clementineLesson.acceptPitch(pitch, rms, now);
+                    // Lowering sensitivity must not turn a held note into a new pluck.
+                    // This extra reading is for release only; matching uses the current setting.
+                    const releasePitch = pitch < 0 && clementineLesson.releaseSensitivity > inputSensitivity ?
+                        autoCorrelate(buffer, audioContext.sampleRate, clementineLesson.releaseSensitivity) : pitch;
+                    clementineLesson.acceptPitch(pitch, rms, now, releasePitch);
                     if (audioContext) animationFrame = requestAnimationFrame(updatePitch);
                     return;
                 }

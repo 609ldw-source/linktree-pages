@@ -137,12 +137,13 @@
         let sectionIndex = 0, noteIndex = 0, phase = 'idle', heard = false;
         let generation = 0, context = null, sources = [], frame = null, resumeTimer = null;
         let stableSince = null, quietSince = null, previousFreq = null, fresh = true, scrollMeasure = null;
+        let acceptedSensitivity = 0;
         let scorePage = 0, displayedIndex = 0, displayedDemo = false, displayedRest = false;
         const songProgress = new Map();
         let completed = new Set();
         songProgress.set(song.id, completed);
         const section = () => sections[sectionIndex];
-        function clearGate() { stableSince = quietSince = previousFreq = null; fresh = true; }
+        function clearGate() { stableSince = quietSince = previousFreq = null; fresh = true; acceptedSensitivity = 0; }
         function cancelAudio() {
             generation++;
             if (frame !== null) cancelAnimationFrame(frame);
@@ -298,14 +299,14 @@
                 return false;
             }
         }
-        function acceptPitch(pitch, rms, now) {
+        function acceptPitch(pitch, rms, now, releasePitch = pitch) {
             if (phase !== 'practice' || !hooks.isListening()) return;
             const note = section().notes[noteIndex];
-            const quiet = pitch < 0 || rms < .003 / hooks.sensitivity();
+            const quiet = releasePitch < 0 || rms < .003 / Math.max(hooks.sensitivity(), acceptedSensitivity);
             if (quiet) {
                 stableSince = null;
                 if (quietSince === null) quietSince = now;
-                if (now - quietSince >= 80) fresh = true;
+                if (now - quietSince >= 80) { fresh = true; acceptedSensitivity = 0; }
                 return;
             }
             quietSince = null;
@@ -315,7 +316,7 @@
             if (!fresh || !matches) { stableSince = null; return; }
             if (stableSince === null) stableSince = now;
             if (now - stableSince < 90) return;
-            previousFreq = note.freq; fresh = false; stableSince = null; noteIndex++;
+            previousFreq = note.freq; fresh = false; acceptedSensitivity = hooks.sensitivity(); stableSince = null; noteIndex++;
             if (noteIndex === section().notes.length) {
                 phase = 'complete'; completed.add(sectionIndex); hooks.stopInput(); render(-1);
                 el('start-listen-btn').style.display = 'none'; el('mic-reconnect-btn').disabled = true;
@@ -355,7 +356,8 @@
         });
         return { enter, selectSection, playDemo, repeat, canListen, listeningStarted,
             decorateTarget, acceptPitch, stop: cancelAudio, suspend,
-            get phase() { return phase; }, get sectionIndex() { return sectionIndex; } };
+            get phase() { return phase; }, get sectionIndex() { return sectionIndex; },
+            get releaseSensitivity() { return Math.max(hooks.sensitivity(), acceptedSensitivity); } };
     }
     window.Clementine = { sections, createLesson };
 })();
