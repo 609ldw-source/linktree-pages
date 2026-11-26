@@ -143,6 +143,12 @@
         let completed = new Set();
         songProgress.set(song.id, completed);
         const section = () => sections[sectionIndex];
+        function updateSectionOptions() {
+            const picker = el('clem-section-select');
+            picker.innerHTML = sections.map((s, i) =>
+                `<option value="${i}">${completed.has(i) ? '✓ ' : ''}${i + 1}구간 · ${s.first}–${s.last}마디</option>`).join('');
+            picker.value = String(sectionIndex);
+        }
         function clearGate() { stableSince = quietSince = previousFreq = null; fresh = true; acceptedSensitivity = 0; }
         function cancelAudio() {
             generation++;
@@ -210,6 +216,7 @@
         }
         function decorateTarget() {
             el('progress-tag').innerText = `구간 ${sectionIndex + 1} / ${sections.length}`;
+            el('clem-section-select').value = String(sectionIndex);
             el('note-display').innerText = song.title;
             el('clementine-panel').setAttribute('aria-label',`${song.title} 멜로디 연습`);
             el('start-listen-btn').disabled = !canListen();
@@ -318,7 +325,7 @@
             if (now - stableSince < 90) return;
             previousFreq = note.freq; fresh = false; acceptedSensitivity = hooks.sensitivity(); stableSince = null; noteIndex++;
             if (noteIndex === section().notes.length) {
-                phase = 'complete'; completed.add(sectionIndex); hooks.stopInput(); render(-1);
+                phase = 'complete'; completed.add(sectionIndex); updateSectionOptions(); hooks.stopInput(); render(-1);
                 el('start-listen-btn').style.display = 'none'; el('mic-reconnect-btn').disabled = true;
                 hooks.feedback(completed.size === sections.length ? `${song.title} 끝까지 완성했어요! 🎉` : '이 구간을 모두 연주했어요! 🎉', 'status-success');
                 el('clem-feedback').innerText = completed.size === sections.length ? '다른 구간을 골라 다시 연습할 수도 있어요.' : '다시 연습하거나 다음 구간으로 넘어가세요.';
@@ -337,9 +344,11 @@
             if (!songProgress.has(song.id)) songProgress.set(song.id, new Set());
             completed = songProgress.get(song.id);
             el('clem-parts').innerHTML = sections.map((_,i)=>`<button id="clem-part-${i}" class="clem-part" type="button">${i+1}구간</button>`).join('');
+            updateSectionOptions();
             for (let i = 0; i < sections.length; i++) el(`clem-part-${i}`).addEventListener('click', () => selectSection(i));
             selectSection(0);
         }
+        el('clem-section-select').addEventListener('change', event => selectSection(Number(event.target.value)));
         for (let page = 0; page < 2; page++) el(`clem-page-${page}`).addEventListener('click', () => {
             if (section().first + page * 2 > section().last) return;
             scorePage = page; scrollMeasure = null; render(displayedIndex, displayedDemo, false, displayedRest); focusScore(null);
@@ -348,7 +357,7 @@
         el('clem-stop-btn').addEventListener('click', () => { suspend(); el('clem-feedback').innerText = '다시 들으려면 시범 듣기를 눌러주세요.'; });
         el('clem-reset-btn').addEventListener('click', repeat);
         el('clem-next-btn').addEventListener('click', () => {
-            if (completed.size === sections.length) { completed.clear(); selectSection(0); return; }
+            if (completed.size === sections.length) { completed.clear(); updateSectionOptions(); selectSection(0); return; }
             for (let step = 1; step <= sections.length; step++) {
                 const next = (sectionIndex + step) % sections.length;
                 if (!completed.has(next)) { selectSection(next); return; }

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>신비아파트 기타 연습</title>
-    <link rel="stylesheet" href="clementine.css">
+    <link rel="stylesheet" href="clementine.css?v=20261127-sections">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
         
@@ -400,6 +400,7 @@
             <button id="back-home-btn">🏠 홈으로</button>
             <div id="progress-tag">문제 1 / 10</div>
             <h1 id="note-display">도 (C)</h1>
+            <select id="clem-section-select" aria-label="연습 구간 선택"></select>
             <section id="clem-neck-panel" aria-label="기타 넥 운지 안내">
                 <div id="clem-neck"></div>
                 <p id="clem-neck-caption" role="status" aria-live="polite"></p>
@@ -414,6 +415,7 @@
         </div>
 
         <div id="right-panel">
+            <div id="clem-parts" class="clem-parts" role="group" aria-label="연습 구간 선택"></div>
             <div id="practice-content">
             <div id="fretboard-container">
                 <img id="board-img" src="fret.jpeg" alt="지판 이미지">
@@ -433,12 +435,6 @@
 
             <section id="clementine-panel" aria-label="클레멘타인 멜로디 연습">
                 <div class="clem-heading"><p id="clem-range"></p><span id="clem-counter"></span></div>
-                <div id="clem-parts" class="clem-parts" aria-label="연습 구간 선택">
-                    <button id="clem-part-0" class="clem-part" type="button">1구간</button>
-                    <button id="clem-part-1" class="clem-part" type="button">2구간</button>
-                    <button id="clem-part-2" class="clem-part" type="button">3구간</button>
-                    <button id="clem-part-3" class="clem-part" type="button">4구간</button>
-                </div>
                 <h2 id="clem-target" aria-live="polite"></h2>
                 <div id="clementine-score"></div>
                 <p id="clem-feedback" role="status" aria-live="polite"></p>
@@ -477,7 +473,7 @@
 
     <div id="debug-freq">인식된 Hz: 0.0</div>
 
-    <script src="clementine.js?v=20261125-mic-slider"></script>
+    <script src="clementine.js?v=20261127-sections"></script>
     <script src="doremi.js"></script>
     <script>
         // --- 1. 베이스 연습 전용 X 좌표 (fretboard.jpeg): 0~12프렛 ---
